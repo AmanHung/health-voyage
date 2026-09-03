@@ -1,0 +1,39 @@
+.prod-app { min-height:100vh; background:#f1f7f6; color:#153d40; font-size:1.25rem; }
+.prod-app .topbar { display:flex; justify-content:space-between; padding:14px 24px; background:#fff; }
+.prod-content { max-width:1320px; padding:24px; margin:auto; }
+.prod-app h1 { font-size:2rem; line-height:1.3; font-weight:750; }
+.prod-app h2 { font-size:1.5rem; display:flex; align-items:center; gap:12px; font-weight:700; margin-bottom:16px; }
+.prod-app h3 { font-size:1.25rem; font-weight:700; }
+.prod-app p { line-height:1.65; margin:12px 0; }
+.prod-app .surface { background:#fff; border:1px solid #d1e0de; border-radius:22px; padding:24px; margin-bottom:24px; }
+.prod-login { max-width:520px; margin:32px auto; display:grid; gap:16px; }
+.prod-login>svg { width:48px;height:48px;color:#176b64; }
+.prod-app [data-slot=button],.prod-dialog [data-slot=button] { min-height:56px; height:auto; padding:12px 18px; font-size:1.25rem; white-space:normal; }
+.prod-app [data-slot=button] svg,.prod-dialog [data-slot=button] svg {width:24px;height:24px;}
+.prod-app .profile-trigger { min-width:56px; min-height:56px; font-size:1.5rem; }
+.prod-form { display:grid; gap:20px; }
+.prod-form label { display:grid; gap:8px; }
+.prod-form input:not([type=radio]):not([type=checkbox]):not([type=file]) { min-height:56px; font-size:1.25rem; background:#fff; padding:10px 12px; }
+.prod-form legend { font-size:1.25rem; font-weight:700; margin-bottom:12px; }
+.prod-choices {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.prod-form .prod-choice {display:flex;align-items:center;gap:12px;min-height:56px;border:1px solid #b6cfcb;border-radius:12px;padding:12px;cursor:pointer;font-size:1.25rem;}
+.prod-choice:has([data-checked]) {background:#e3f4ee;border-color:#176b64;}
+.prod-choice [data-slot=checkbox],.prod-choice [data-slot=radio-group-item] {min-width:24px;min-height:24px;}
+.prod-welcome {margin-bottom:24px;}
+.prod-tasks {display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px;}
+.prod-app .prod-task {display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:24px;min-height:175px;text-align:left;background:#fff;border-radius:20px;}
+.prod-task strong {font-size:1.5rem;}.prod-task span {font-size:1.125rem;}.prod-app .prod-task>svg {width:36px;height:36px;}
+.prod-app .prod-task.done {background:#e1f3ea;border-color:#176b64;}
+.prod-rank ol {padding:0;list-style:none;}.prod-rank li {display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:18px 0;border-bottom:1px solid #d1e0de;}
+.prod-records {display:grid;gap:16px;}.prod-records article {border-bottom:1px solid #d1e0de;padding:18px 0;}
+.prod-actions {display:flex;gap:12px;flex-wrap:wrap;}
+.prod-error {background:#fff0ee;border:1px solid #bd3b2b;border-radius:12px;color:#8e241c;padding:16px;}
+.prod-success,.prod-test {background:#e3f4ee;border-radius:12px;padding:16px;}
+.prod-dialog {max-width:620px!important;width:calc(100% - 24px);max-height:90dvh;overflow:auto;padding:28px;font-size:1.25rem;color:#153d40;}
+.prod-dialog [data-slot=dialog-title] {font-size:1.75rem;padding-right:32px;}.prod-dialog [data-slot=dialog-description] {font-size:1.125rem;}
+.prod-dialog .prod-form {margin-top:12px;}.prod-photo {width:100%;max-height:420px;object-fit:contain;border-radius:12px;}
+.prod-feedback {background:#edf7f3;border-radius:12px;padding:16px;line-height:1.6;}
+.prod-code {overflow-wrap:anywhere;padding:16px;background:#edf7f3;font-family:monospace;}.prod-code small {font-family:inherit;font-size:1rem;}
+.prod-footer {font-size:1.125rem;line-height:1.5;margin:28px 0;color:#4e696a;}
+@media(max-width:700px){.prod-content{padding:16px;}.prod-app .topbar{padding:12px 16px;}.prod-tasks{grid-template-columns:1fr;gap:12px;}.prod-app .prod-task{min-height:100px;display:grid;grid-template-columns:40px 1fr;gap:8px 16px;}.prod-task>svg{grid-row:span 2;}.prod-task strong,.prod-task span{grid-column:2;}.prod-app .surface{padding:18px;}.prod-dialog{padding:20px;}.prod-rank li{display:grid;}}
+@media(prefers-reduced-motion:reduce){.prod-app *,.prod-dialog * {animation:none!important;transition:none!important;}}

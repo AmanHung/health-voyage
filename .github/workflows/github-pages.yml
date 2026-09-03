@@ -1,0 +1,49 @@
+name: Validate and deploy health-voyage
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: health-voyage-pages
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:github
+        env:
+          VITE_GOOGLE_API_URL: ${{ vars.GOOGLE_API_URL }}
+          VITE_LIFF_ID: ${{ vars.LIFF_ID }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: google-apps-script
+          path: build/google
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/github
+  deploy:
+    # Never publish a misleading, disconnected production entry.
+    if: ${{ vars.DEPLOY_READY == 'true' && vars.GOOGLE_API_URL != '' && vars.LIFF_ID != '' && vars.GOOGLE_CLIENT_ID != '' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy verified frontend
+        id: deployment
+        uses: actions/deploy-pages@v4
