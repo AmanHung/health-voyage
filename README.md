@@ -32,6 +32,6 @@ npm run build
 
 ## 部署
 
-依 [部署與驗收說明](google/DEPLOYMENT.md) 完成 Google 授權、Google 登入 Client ID 與 LINE LIFF 設定。GitHub Actions 會先測試及建置；只有公開識別碼齊全且 `DEPLOY_READY=true` 才發布網站。
+依 [部署與驗收說明](google/DEPLOYMENT.md) 完成 Google 授權、Google 登入 Client ID 與 LINE LIFF 設定。GitHub Actions 會先測試及建置，`PAGES_ENABLED=true` 時發布網站。公開入口與開放收案分開控制：識別碼未齊時只顯示「網站設定中」，不開放登入或上傳；後端 `ACCEPT_PATIENTS` 另行管制個案使用。
 
 離線測試使用替身 Google 服務，不能取代真實裝置與帳號驗收。完成測試個案端到端驗收及資料管理規範前，不開放正式收案。

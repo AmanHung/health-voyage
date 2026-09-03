@@ -32,11 +32,11 @@
 
 ## 4. GitHub Pages
 
-獨立 repository：AmanHung/health-voyage。先保留私人，未經確認不公開來源碼。私人 repository 使用 Pages 可能需要既有付費方案；不可自行升級。若帳號不支援，請管理員選擇公開已去除敏感資料的專案來源，或使用既有適用方案。
+獨立 repository：AmanHung/health-voyage。管理員已於 2026-09-03 指示公開此獨立專案並啟用 Pages，handbook 不變。公開前检查提交歷史，排除金鑰、環境檔與個案資料；不變更 Google 私人資料的共用權限。
 
 Repository variables（都不含機密）：`GOOGLE_API_URL`（Google /exec 部署網址）、`GOOGLE_CLIENT_ID`、`LIFF_ID`。
 Settings → Pages → GitHub Actions。
-三者未齊或 `DEPLOY_READY` 非 true 時只驗證、產出套件，不發布不完整網站。正式發布前須取得對外公開網站的確認。
+`PAGES_ENABLED=true` 時通過驗證後發布。三個識別碼未齊時，前端只顯示「網站設定中」，不開放登入或上傳；可先取得網址用於 Google OAuth origin 與 LINE LIFF Endpoint 設定。網站可開啟不代表完成收案驗收，後端 `ACCEPT_PATIENTS` 預設仍為 false。
 
 ## 5. 驗收與限制
 

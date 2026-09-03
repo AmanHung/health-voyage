@@ -33,8 +33,9 @@ jobs:
         with:
           path: build/github
   deploy:
-    # Never publish a misleading, disconnected production entry.
-    if: ${{ vars.DEPLOY_READY == 'true' && vars.GOOGLE_API_URL != '' && vars.LIFF_ID != '' && vars.GOOGLE_CLIENT_ID != '' }}
+    # The public URL can show setup status before integrations are configured.
+    # production/config.ts keeps login and uploads unavailable until all IDs exist.
+    if: ${{ vars.PAGES_ENABLED == 'true' }}
     needs: validate
     runs-on: ubuntu-latest
     permissions:
