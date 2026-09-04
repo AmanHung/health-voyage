@@ -18,3 +18,11 @@ test('publishing an unconfigured site does not open login or patient enrollment'
   assert.match(backend, /ACCEPT_PATIENTS/);
   assert.match(backend, /'false'/);
 });
+
+test('public legal pages disclose the health-data boundaries', () => {
+  const privacy=readFileSync('public/privacy.html','utf8');
+  const terms=readFileSync('public/terms.html','utf8');
+  assert.match(privacy,/私人 Google 試算表與 Google 雲端硬碟/);
+  assert.match(privacy,/排行榜採自由參加/);
+  assert.match(terms,/不是醫療診斷、處方、即時監測或緊急通報系統/);
+});

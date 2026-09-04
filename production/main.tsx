@@ -60,7 +60,7 @@ function App(){
       {view==='history'&&<section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section>}
       {view==='account'&&profile&&<Account auth={auth} profile={profile} onSaved={p=>{updateProfile(p);setNotice('個人設定已保存。');}}/>}
       </>}
-      <footer className="prod-footer">紀錄供照護追蹤，不作即時醫療監測。身體不適請直接就醫。</footer>
+      <footer className="prod-footer">紀錄供照護追蹤，不作即時醫療監測。身體不適請直接就醫。<span className="prod-legal"><a href="./privacy.html">隱私權政策</a><a href="./terms.html">服務條款</a></span></footer>
     </main>
     {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className="prod-dialog"><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription><RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={r=>{setData(d=>d?{...d,records:[...(d.records||[]).filter(x=>!(x.date===r.date&&x.kind===r.kind)),r]}:d);setModal(null);setNotice('紀錄已保存。');}}/></DialogContent></Dialog>}
     {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><img src={image} alt="已保存的紀錄照片" className="prod-photo"/></DialogContent></Dialog>}
