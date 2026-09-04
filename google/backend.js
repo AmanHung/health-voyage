@@ -183,13 +183,25 @@ export function dispatch(action, payload, identity) {
   }
   throw new Error('不支援此操作。');
 }
-export function get() { return json({ok:true,service:'health-voyage',version:1,acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true'}); }
+function requestAllowed(action, payload, identity) {
+  if (identity.role === 'admin' || props().getProperty('ACCEPT_PATIENTS') === 'true') return true;
+  if (identity.role !== 'patient' || props().getProperty('ACCEPT_TEST_PATIENTS') !== 'true') return false;
+  const people = read('Patients'), current = people.find(p=>p.subject===identity.subject);
+  if (current) return current.active && current.isTest === true;
+  // An authenticated LINE user may reach the invitation screen, but no data is disclosed.
+  if (action === 'bootstrap') return true;
+  if (action !== 'bind' || typeof payload.code !== 'string') return false;
+  const code = payload.code.replace(/[ -]/g,'').toUpperCase();
+  const invited = people.find(p=>p.inviteHash===hash(code));
+  return !!(invited && invited.active && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
+}
+export function get() { return json({ok:true,service:'health-voyage',version:1,acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');
     const body=JSON.parse(e.postData.contents);
     const identity=authenticate(body.auth);
-    need(identity.role==='admin' || props().getProperty('ACCEPT_PATIENTS')==='true','網站尚未開放，請稍後再試。');
+    need(requestAllowed(body.action,body.payload||{},identity),'網站尚未開放，請稍後再試。');
     return json({ok:true,data:dispatch(body.action,body.payload||{},identity)});
   } catch(error) {
     // No token, uploaded content, Google endpoint URL or raw exception in logs/responses.
@@ -209,6 +221,7 @@ export function setup() {
     }
     if(!p.getProperty('PHOTO_FOLDER_ID'))p.setProperty('PHOTO_FOLDER_ID',DriveApp.createFolder('健康航程｜私有壓縮照片').getId());
     if(!p.getProperty('ACCEPT_PATIENTS'))p.setProperty('ACCEPT_PATIENTS','false');
+    if(!p.getProperty('ACCEPT_TEST_PATIENTS'))p.setProperty('ACCEPT_TEST_PATIENTS','false');
     privateFolder();
     return {ready:true,acceptingPatients:p.getProperty('ACCEPT_PATIENTS')==='true'};
   });

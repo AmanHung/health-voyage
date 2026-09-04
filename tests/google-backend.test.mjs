@@ -82,9 +82,14 @@ test('test patients never enter real leaderboard; opting out persists',()=>{
   e.call('profile',{nickname:'測試暱稱',participating:false},p.identity);
   assert.equal(e.call('bootstrap',{},p.identity).data.profile.participating,false);
 });
-test('closed enrollment blocks patient writes, invalid images fail closed',()=>{
-  const e=environment(),p=e.patient('A');e.properties.set('ACCEPT_PATIENTS','false');assert.equal(e.call('bootstrap',{},p.identity).ok,false);
-  assert.equal(e.call('bootstrap').ok,true);e.properties.set('ACCEPT_PATIENTS','true');
+test('closed enrollment permits only scoped test patients, invalid images fail closed',()=>{
+  const e=environment(),p=e.patient('A'),real=e.patient('REAL',false);e.properties.set('ACCEPT_PATIENTS','false');e.properties.set('ACCEPT_TEST_PATIENTS','false');assert.equal(e.call('bootstrap',{},p.identity).ok,false);
+  assert.equal(e.call('bootstrap').ok,true);
+  e.properties.set('ACCEPT_TEST_PATIENTS','true');
+  assert.equal(e.call('bootstrap',{},p.identity).ok,true);
+  assert.equal(e.call('bootstrap',{},real.identity).ok,false);
+  const unbound=e.auth('new-test','line');assert.equal(e.call('bootstrap',{},unbound).data.bound,false);
+  assert.equal(e.call('bind',{code:'0000000000000000',nickname:'測試新手'},unbound).ok,false);
   const record={kind:'exercise',date:dayKey(),mode:'steps',value:0,activity:'休息'};
   assert.equal(e.call('save',{record,requestId:randomUUID(),image:'data:image/jpeg;base64,AAAA'},p.identity).ok,false);
   assert.equal(e.call('save',{record,requestId:randomUUID()},p.identity).ok,false);

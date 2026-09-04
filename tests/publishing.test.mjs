@@ -16,6 +16,7 @@ test('publishing an unconfigured site does not open login or patient enrollment'
   assert.match(frontend, /網站設定中/);
   assert.match(frontend, /尚未開放登入與上傳/);
   assert.match(backend, /ACCEPT_PATIENTS/);
+  assert.match(backend, /ACCEPT_TEST_PATIENTS/);
   assert.match(backend, /'false'/);
 });
 
