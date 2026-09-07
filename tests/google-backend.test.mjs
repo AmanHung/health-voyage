@@ -72,15 +72,25 @@ test('idempotent retry makes one record; corrections preserve history and replac
   assert.equal(e.call('bootstrap',{},p.identity).data.records.length,1);
   assert.equal(e.call('admin.records',{patientId:p.id}).data.records.length,2);
   assert.equal(e.call('save',{record,previousId:saved.id,requestId:randomUUID()},p.identity).ok,false);
-  e.call('profile',{nickname:'參賽者',participating:true},p.identity);
+  e.call('profile',{nickname:'參賽者'},p.identity);
   assert.equal(e.call('leaderboard',{},p.identity).data.rows[0].steps,2000);
 });
-test('test patients never enter real leaderboard; opting out persists',()=>{
-  const e=environment(),p=e.patient('A');e.call('profile',{nickname:'測試暱稱',participating:true},p.identity);
+test('all real patients enter the nickname leaderboard; test patients never enter',()=>{
+  const e=environment(),p=e.patient('A');e.call('profile',{nickname:'測試暱稱'},p.identity);
   e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1000,activity:'步行'},requestId:randomUUID(),image},p.identity);
   assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[]);
-  e.call('profile',{nickname:'測試暱稱',participating:false},p.identity);
-  assert.equal(e.call('bootstrap',{},p.identity).data.profile.participating,false);
+  const real=e.patient('REAL',false);e.call('profile',{nickname:'正式暱稱'},real.identity);
+  e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1234,activity:'步行'},requestId:randomUUID(),image},real.identity);
+  const current=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows;
+  const stored=JSON.parse(current[2][5]);stored.participating=false;current[2][5]=JSON.stringify(stored);
+  assert.deepEqual(e.call('leaderboard',{},real.identity).data.rows,[{nickname:'正式暱稱',steps:1234}]);
+});
+test('ordinary JPEG metadata is accepted after private upload checks',()=>{
+  const e=environment();
+  const bytes=Buffer.from(image.split(',')[1],'base64');
+  const withMetadata=Buffer.concat([bytes.subarray(0,2),Buffer.from([255,225,0,4,0,0]),bytes.subarray(2)]);
+  const value='data:image/jpeg;base64,'+withMetadata.toString('base64');
+  assert.equal(e.context.HealthVoyage.validateImage(value).width,100);
 });
 test('closed enrollment permits only scoped test patients, invalid images fail closed',()=>{
   const e=environment(),p=e.patient('A'),real=e.patient('REAL',false);e.properties.set('ACCEPT_PATIENTS','false');e.properties.set('ACCEPT_TEST_PATIENTS','false');assert.equal(e.call('bootstrap',{},p.identity).ok,false);

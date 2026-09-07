@@ -52,7 +52,7 @@ export function parseExerciseText(raw: string): Metrics {
     if (/^(?:重點|Highlights|趨勢|Trends)$/i.test(line))
       secondarySection = true;
     if (
-      /目標|目标|goal|target|平均|average|每週|每周|本週|本周|weekly|本月|monthly|總計|总计/i.test(
+      /目標|目标|goal|target|平均|average|每週|每周|本週|本周|weekly|本月|monthly/i.test(
         line,
       )
     )
@@ -137,7 +137,7 @@ export function parseExerciseRecognition(
   if (
     !layout ||
     !headings.some((line) =>
-      /^(?:步數|步数|步行|steps|stepcount|dailysteps)$/i.test(line),
+      /步數|步数|步行|steps?|stepcount|dailysteps/i.test(line),
     )
   )
     return metrics;
@@ -149,10 +149,11 @@ export function parseExerciseRecognition(
       const height = line.bbox.y1 - line.bbox.y0;
       if (
         value > 100000 ||
-        line.confidence < 20 ||
+        (line.confidence < 15 && height < layout.width * 0.06) ||
         height < layout.width * 0.035 ||
-        line.bbox.y0 < layout.height * 0.14 ||
-        line.bbox.y1 > layout.height * 0.56 ||
+        height > layout.height * 0.12 ||
+        line.bbox.y0 < layout.height * 0.12 ||
+        line.bbox.y1 > layout.height * 0.7 ||
         line.bbox.x1 - line.bbox.x0 > layout.width * 0.65
       )
         return [];
@@ -162,7 +163,7 @@ export function parseExerciseRecognition(
   if (!candidates.length) return metrics;
   const best = candidates[0];
   const rival = candidates.find((candidate) => candidate.value !== best.value);
-  if (rival && best.height < rival.height * 1.35)
+  if (rival && best.height < rival.height * 1.2)
     return { ...metrics, steps: null };
   return { ...metrics, steps: best.value };
 }

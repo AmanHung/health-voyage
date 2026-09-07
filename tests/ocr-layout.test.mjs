@@ -39,6 +39,26 @@ test('today value remains authoritative when lower quality digit pass conflicts'
     { steps: 1620, minutes: null },
   );
 });
+test('accepts a daily total line used by common phone health apps', () => {
+  assert.deepEqual(parseExerciseText('步數\n總計 1,616 步\n今天'), {
+    steps: 1616,
+    minutes: null,
+  });
+  assert.equal(
+    parseExerciseRecognition(
+      '步數 今天',
+      layout([line('1,616', 48, 220), line('900', 28, 480)]),
+    ).steps,
+    1616,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '總計\n1,616\n今天\n檢視所有步數測量指標',
+      layout([line('1,616', 60, 323), line('900', 15, 404)]),
+    ).steps,
+    1616,
+  );
+});
 test('ambiguous or untitled numeric layouts stay blank', () => {
   assert.equal(
     parseExerciseRecognition(

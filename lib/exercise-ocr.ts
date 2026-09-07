@@ -28,7 +28,7 @@ export async function recognizeExercise(
       ...first,
       text,
       status: 'recognized',
-      engine: 'Tesseract.js 6 / text-and-numeric-layout-v2',
+      engine: 'Tesseract.js 6 / steps-layout-v3',
     };
   await worker.terminate();
   const numericWorker = await createNumericWorker();
@@ -42,9 +42,9 @@ export async function recognizeExercise(
   });
   const rectangle = {
     left: Math.floor(size.width * 0.02),
-    top: Math.floor(size.height * 0.14),
+    top: Math.floor(size.height * 0.06),
     width: Math.floor(size.width * 0.96),
-    height: Math.floor(size.height * 0.4),
+    height: Math.floor(size.height * 0.64),
   };
   const numeric = await numericWorker.recognize(
     image,
@@ -71,6 +71,6 @@ export async function recognizeExercise(
     text,
     layout,
     status: 'recognized',
-    engine: 'Tesseract.js 6 / text-and-numeric-layout-v2',
+    engine: 'Tesseract.js 6 / steps-layout-v3',
   };
 }

@@ -37,9 +37,9 @@ test('profile trigger is a labelled menu and secondary routes remain reachable',
   for(const view of ['today','history','account','admin']) assert.ok(source.includes(`onNavigate('${view}')`));
   assert.match(source,/DropdownMenuContent/);
 });
-test('home ranking keeps voluntary participation and only exposes nickname and steps',()=>{
-  assert.doesNotMatch(rendered.rank(false),/我的測試暱稱/);
+test('home ranking automatically includes nickname and only exposes nickname and steps',()=>{
+  assert.match(rendered.rank(false),/我的測試暱稱/);
   assert.match(rendered.rank(true),/我的測試暱稱/);
   assert.match(rendered.rank(true),/4,816/);
-  assert.match(rendered.rank(false),/示範榜單/);
+  assert.doesNotMatch(rendered.rank(false),/參加步數榜|退出步數榜/);
 });

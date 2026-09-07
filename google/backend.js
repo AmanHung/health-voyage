@@ -89,8 +89,7 @@ export function validateImage(data) {
     need(u[pos] === 255, '圖片損壞。'); const marker = u[pos+1];
     if (marker === 218 || marker === 217) break;
     const size = u[pos+2]*256+u[pos+3]; need(size >= 2 && pos+size+2 <= u.length, '圖片損壞。');
-    // The browser re-encodes without metadata. Reject EXIF/APP1 GPS or other original metadata.
-    need(marker !== 225, '請先移除照片附加資訊。');
+    // Accept ordinary JPEG metadata. Access remains private and the browser normally re-encodes uploads.
     if ([192,193,194].includes(marker)) { height=u[pos+5]*256+u[pos+6]; width=u[pos+7]*256+u[pos+8]; }
     pos += size+2;
   }
@@ -115,7 +114,7 @@ export function dispatch(action, payload, identity) {
       const previous = read('Patients').find(p=>p.requestId===requestId);
       if (previous) return {patient:publicPerson(previous),alreadyCreated:true};
       const rawCode = Utilities.getUuid().replace(/-/g,'').slice(0,16).toUpperCase();
-      const p = {id:Utilities.getUuid(),createdAt:new Date().toISOString(),name,nickname:'健康同行',subject:'',active:true,participating:false,isTest:payload.isTest===true,requestId,inviteHash:hash(rawCode),inviteExpiresAt:Date.now()+3*86400000,inviteUsedAt:null};
+      const p = {id:Utilities.getUuid(),createdAt:new Date().toISOString(),name,nickname:'健康同行',subject:'',active:true,participating:true,isTest:payload.isTest===true,requestId,inviteHash:hash(rawCode),inviteExpiresAt:Date.now()+3*86400000,inviteUsedAt:null};
       write('Patients',p); audit(identity.subject,'patient.create',p.id);
       return {patient:publicPerson(p),code:rawCode,expiresAt:new Date(p.inviteExpiresAt).toISOString()};
     });
@@ -152,11 +151,10 @@ export function dispatch(action, payload, identity) {
     need(file.getSize()<=800000,'照片大小異常。');
     return {dataUrl:'data:image/jpeg;base64,'+Utilities.base64Encode(file.getBlob().getBytes())};
   }
-  const p = person(identity);
   if (action === 'profile') return locked(()=> {
     const current=person(identity);
     current.nickname=cleanText(payload.nickname,2,12,'暱稱');
-    need(typeof payload.participating==='boolean','請確認排行榜設定。');current.participating=payload.participating;
+    current.participating=true;
     write('Patients',current,current._row);audit(identity.subject,'profile.update',current.id);
     return {profile:publicPerson(current)};
   });

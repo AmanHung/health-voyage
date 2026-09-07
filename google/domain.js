@@ -48,7 +48,7 @@ export function latest(records) {
   return [...map.values()];
 }
 export function leaderboard(patients, records, month) {
-  return patients.filter(p => p.active && p.participating && !p.isTest).map(p => ({
+  return patients.filter(p => p.active && !p.isTest).map(p => ({
     nickname: p.nickname,
     steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)).reduce((sum, r) => sum + r.value, 0),
   })).sort((a,b) => b.steps - a.steps).slice(0, 20);
