@@ -12,7 +12,9 @@ import {api,type Auth,type Bootstrap,type Profile,type RecordItem} from './api';
 import {configured} from './config';
 import {lineAuth,googleButton,signOut} from './auth';
 import {prepareImage,type PreparedImage} from './images';
-import {feedback,GROUPS,MEDS} from '../google/domain.js';
+import {MEDS} from '../google/domain.js';
+import {MealInterview,emptyMealInterview} from './meal-interview';
+import {groupsFromInterview,mealInterviewComplete,type MealInterview as MealAnswers} from '../lib/meal-interview';
 import '@/app/globals.css';
 import './style.css';
 
@@ -77,12 +79,14 @@ function Account({auth,profile,onSaved}:{auth:Auth;profile:Profile;onSaved:(p:Pr
   return <form className="surface prod-form" onSubmit={save}><h1>我的帳號</h1><label>排行榜暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label><p>排行榜只顯示暱稱與本月步數。</p>{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy}>{busy?'儲存中…':'儲存設定'}</Button></form>;
 }
 function RecordList({records,onPhoto,onEdit}:{records:RecordItem[];onPhoto:(r:RecordItem)=>void;onEdit?:(r:RecordItem)=>void}){
-  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.groups?.join('、')}・${r.eaten}`:r.status}</p>{r.feedback&&<p>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
+  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p>{r.feedback&&<p>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
 }
 function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem['kind'];today:string;record?:RecordItem;onSaved:(r:RecordItem)=>void}){
   const [date,setDate]=useState(record?.date||today),[value,setValue]=useState(record?.mode==='steps'?record.value?.toString()||'':'');
   const [recognized,setRecognized]=useState<number|null>(record?.mode==='steps'?record.recognized??null:null);
-  const [period,setPeriod]=useState(record?.period||'午餐'),[groups,setGroups]=useState<string[]>(record?.groups||[]),[eaten,setEaten]=useState(record?.eaten||'全部'),[drink,setDrink]=useState(record?.drink||'無飲料'),[restrictedDiet,setRestricted]=useState(record?.restrictedDiet||false);
+  const [period,setPeriod]=useState(record?.period||'午餐');
+  const [meal,setMeal]=useState<MealAnswers>(()=>record?.mealDetails?{...emptyMealInterview(),...record.mealDetails}:emptyMealInterview());
+  const [mealReady,setMealReady]=useState(kind!=='meal'||Boolean(record?.mealDetails));
   const [status,setStatus]=useState(record?.status||''),[prepared,setPrepared]=useState<PreparedImage|null>(null),[busy,setBusy]=useState(false),[processing,setProcessing]=useState(false),[error,setError]=useState(''),[ocrText,setOcrText]=useState('');
   const fileInput=useRef<HTMLInputElement>(null),previewRef=useRef(''),active=useRef(true),request=useRef({body:'',id:''});
   useEffect(()=>()=>{active.current=false;if(previewRef.current)URL.revokeObjectURL(previewRef.current);},[]);
@@ -98,7 +102,7 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
     }catch(e){setError(message(e));}finally{if(active.current)setProcessing(false);}
   }
   async function submit(e:FormEvent){e.preventDefault();if(busy||processing)return;setBusy(true);setError('');try{
-    const entry=kind==='exercise'?{kind,date,mode:'steps',value:value.trim()===''?null:Number(value),activity:'步行',recognized}:kind==='meal'?{kind,date,period,groups,eaten,drink,restrictedDiet}:{kind,date,status};
+    const entry=kind==='exercise'?{kind,date,mode:'steps',value:value.trim()===''?null:Number(value),activity:'步行',recognized}:kind==='meal'?{kind,date,period,groups:groupsFromInterview(meal),eaten:meal.eaten==='還沒吃'?'少量':meal.eaten==='不知道'?'不確定':meal.eaten,drink:meal.drink==='沒有飲料'||meal.drink==='白開水'?'無飲料':meal.drink==='無糖飲料'?'無糖':meal.drink==='含糖飲料'?'含糖':'不確定',restrictedDiet:meal.restrictedDiet===true,mealDetails:meal}:{kind,date,status};
     const payload={record:entry,previousId:record?.id||null,image:prepared?.dataUrl||null};const body=JSON.stringify(payload);if(request.current.body!==body)request.current={body,id:crypto.randomUUID()};
     const result=await api<{record:RecordItem}>(auth,'save',{...payload,requestId:request.current.id});onSaved(result.record);
   }catch(e){setError(message(e));}finally{setBusy(false);}}
@@ -106,9 +110,9 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
     <label>日期<Input type="date" max={today} value={date} disabled={!!record} onChange={e=>setDate(e.target.value)} required/></label>
     {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onChange={e=>void select(e.target.files?.[0])}/><Button variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'?'選擇餐盤照片':'選擇運動截圖'}</Button>{prepared?<><img className="prod-photo" src={prepared.preview} alt={kind==='meal'?'餐盤照片預覽':'運動截圖預覽'}/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>保留先前的壓縮照片。</p>:<p>照片會自動縮小後保存。</p>}</>}
     {kind==='exercise'&&<label>確認步數<Input type="number" inputMode="numeric" min={0} max={100000} step={1} value={value} onChange={e=>setValue(e.target.value)} required/></label>}
-    {kind==='meal'&&<><Choice label="哪一餐？" options={['早餐','午餐','晚餐','點心']} value={period} onChange={setPeriod}/><fieldset><legend>餐盤裡有什麼？</legend><div className="prod-choices">{GROUPS.map((g:string)=><label className="prod-choice" key={g}><Checkbox checked={groups.includes(g)} onCheckedChange={checked=>setGroups(checked?(g==='不確定'?['不確定']:[...groups.filter(x=>x!=='不確定'),g]):groups.filter(x=>x!==g))}/>{g}</label>)}</div></fieldset><Choice label="吃了多少？" options={['全部','約一半','少量','不確定']} value={eaten} onChange={setEaten}/><Choice label="飲料" options={['無飲料','無糖','含糖','不確定']} value={drink} onChange={setDrink}/><label className="prod-choice"><Checkbox checked={restrictedDiet} onCheckedChange={v=>setRestricted(!!v)}/>照護團隊有交代飲食限制</label>{groups.length>0&&<p className="prod-feedback">{feedback({groups,eaten,restrictedDiet})}</p>}</>}
+    {kind==='meal'&&<MealInterview imageUrl={prepared?.preview||null} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
-    </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
+    </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
 function Admin({auth,onError,onPhoto}:{auth:Auth;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
   const [patients,setPatients]=useState<(Profile&{name:string;bound:boolean})[]>([]),[name,setName]=useState('測試個案 001'),[isTest,setTest]=useState(true),[busy,setBusy]=useState(false),[code,setCode]=useState(''),[records,setRecords]=useState<RecordItem[]>([]),[selected,setSelected]=useState('');

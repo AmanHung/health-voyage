@@ -1,9 +1,12 @@
 import { build } from 'esbuild';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 await mkdir('build/google', { recursive: true });
-const result = await build({ entryPoints: ['google/backend.js'], bundle: true, write: false, format: 'iife', globalName: 'HealthVoyage', target: 'es2020', platform: 'neutral', legalComments: 'none' });
+const result = await build({ entryPoints: ['google/backend.js'], bundle: true, write: false, format: 'iife', globalName: 'HealthVoyage', target: 'es2020', platform: 'neutral', legalComments: 'none', minify: true });
 const code = result.outputFiles[0].text + '\nfunction doGet(e){return HealthVoyage.get(e)}\nfunction doPost(e){return HealthVoyage.post(e)}\nfunction setupHealthVoyage(){return HealthVoyage.setup()}\n';
 await writeFile('build/google/Code.gs', code);
+// Keep the exact Apps Script deployment artifact under version control so a
+// production deployment can be audited and reproduced without manual copying.
+await writeFile('google/Code.gs', code);
 await writeFile('build/google/appsscript.json', await readFile('google/appsscript.json'));
 // Local-only transfer page for the browser editor; not part of the Pages artifact.
 const escape = value => value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
