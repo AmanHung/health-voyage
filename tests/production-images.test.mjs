@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {dimensions,resized} from '../production/images.ts';
 import {dayTasks} from '../lib/task-calendar.ts';
 test('image dimensions checked before decode; oversized pixels rejected',()=>{
@@ -12,4 +13,12 @@ test('live calendar includes saved medication on earlier days',()=>{
   const input={today:'2026-09-03',exerciseDates:['2026-09-02'],mealDates:['2026-09-02'],medicineDates:['2026-09-02'],medicineDone:false,exerciseReady:true,mealReady:true,medicineReady:true,live:true};
   assert.equal(dayTasks('2026-09-02',input).complete,true);
   assert.equal(dayTasks('2026-09-04',input).complete,false);
+});
+test('meal correction can replace a photo and restarts confirmation',()=>{
+  const source=readFileSync('production/main.tsx','utf8');
+  assert.match(source,/type="button" variant="outline" onClick=\{\(\)=>fileInput\.current\?\.click\(\)\}/);
+  assert.match(source,/e\.currentTarget\.value=''/);
+  assert.match(source,/setMeal\(emptyMealInterview\(\)\);setMealReady\(false\)/);
+  assert.match(source,/key=\{prepared\?\.preview\|\|record\?\.id\|\|'new-meal'\}/);
+  assert.match(source,/開啟測試個案/);
 });

@@ -8,6 +8,8 @@
 .prod-app .surface { background:#fff; border:1px solid #d1e0de; border-radius:22px; padding:24px; margin-bottom:24px; }
 .prod-login { max-width:520px; margin:32px auto; display:grid; gap:16px; }
 .prod-login>svg { width:48px;height:48px;color:#176b64; }
+.prod-login-note {font-size:1rem;color:#4e696a;margin:0!important;}
+.prod-link-button {display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:12px 18px;border-radius:12px;background:#176b64;color:#fff;font-size:1.25rem;font-weight:700;text-decoration:none;margin-bottom:10px;}.prod-link-button svg{width:24px;height:24px;}
 .prod-app [data-slot=button],.prod-dialog [data-slot=button] { min-height:56px; height:auto; padding:12px 18px; font-size:1.25rem; white-space:normal; }
 .prod-app [data-slot=button] svg,.prod-dialog [data-slot=button] svg {width:24px;height:24px;}
 .prod-app .profile-trigger { min-width:56px; min-height:56px; font-size:1.5rem; }

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft} from 'lucide-react';
+import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft,TestTube2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Checkbox} from '@/components/ui/checkbox';
@@ -9,7 +9,7 @@ import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/u
 import {DropdownMenu,DropdownMenuTrigger,DropdownMenuContent,DropdownMenuItem} from '@/components/ui/dropdown-menu';
 import {TaskCalendar} from '@/components/task-calendar';
 import {api,type Auth,type Bootstrap,type Profile,type RecordItem} from './api';
-import {configured} from './config';
+import {config,configured} from './config';
 import {lineAuth,googleButton,signOut} from './auth';
 import {prepareImage,type PreparedImage} from './images';
 import {MEDS} from '../google/domain.js';
@@ -51,7 +51,7 @@ function App(){
     </DropdownMenuContent></DropdownMenu>}</header>
     <main className="prod-content">
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<p role="status" className="prod-success">{notice}</p>}
-      {!configured()?<section className="surface prod-login"><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>Google 與 LINE 連線完成後，才會開放測試。</p></section>:!auth||!data?<section className="surface prod-login"><Compass aria-hidden/><h1>每天一小步</h1><p>記下運動、飲食與用藥。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 登入'}</Button><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
+      {!configured()?<section className="surface prod-login"><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>Google 與 LINE 連線完成後，才會開放測試。</p></section>:!auth||!data?<section className="surface prod-login"><Compass aria-hidden/><h1>每天一小步</h1><p>記下運動、飲食與用藥。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 登入'}</Button><p className="prod-login-note">測試個案也使用已綁定的 LINE 帳號登入。</p><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
       data.role==='admin'?<Admin auth={auth} onError={setError} onPhoto={photo}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {profile?.isTest&&<p className="prod-test">測試個案・不列入正式排行榜</p>}
       {view!=='home'&&<Button variant="ghost" onClick={()=>setView('home')}><ArrowLeft/>回首頁</Button>}
@@ -92,6 +92,7 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
   useEffect(()=>()=>{active.current=false;if(previewRef.current)URL.revokeObjectURL(previewRef.current);},[]);
   async function select(file?:File){if(!file)return;setProcessing(true);setError('');setOcrText('');setRecognized(null);
     try{const image=await prepareImage(file,kind==='exercise'?'exercise':'meal');if(!active.current){URL.revokeObjectURL(image.preview);return;}if(previewRef.current)URL.revokeObjectURL(previewRef.current);previewRef.current=image.preview;setPrepared(image);
+      if(kind==='meal'){setMeal(emptyMealInterview());setMealReady(false);}
       if(kind==='exercise'){
         setOcrText('正在讀取步數…');
         const {createWorker}=await import('tesseract.js'),{recognizeExercise}=await import('@/lib/exercise-ocr');
@@ -108,9 +109,9 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
   }catch(e){setError(message(e));}finally{setBusy(false);}}
   return <form className="prod-form" onSubmit={submit}><fieldset disabled={busy||processing} className="prod-form">
     <label>日期<Input type="date" max={today} value={date} disabled={!!record} onChange={e=>setDate(e.target.value)} required/></label>
-    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onChange={e=>void select(e.target.files?.[0])}/><Button variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'?'選擇餐盤照片':'選擇運動截圖'}</Button>{prepared?<><img className="prod-photo" src={prepared.preview} alt={kind==='meal'?'餐盤照片預覽':'運動截圖預覽'}/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>保留先前的壓縮照片。</p>:<p>照片會自動縮小後保存。</p>}</>}
+    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onClick={e=>{e.currentTarget.value='';}} onChange={e=>void select(e.target.files?.[0])}/><Button type="button" variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'&&record?.hasImage?'更換餐點照片':kind==='meal'?'選擇餐點照片':'選擇運動截圖'}</Button>{prepared?<><img className="prod-photo" src={prepared.preview} alt={kind==='meal'?'餐盤照片預覽':'運動截圖預覽'}/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>目前保留原照片，可按上方按鈕更換。</p>:<p>照片會自動縮小後保存。</p>}</>}
     {kind==='exercise'&&<label>確認步數<Input type="number" inputMode="numeric" min={0} max={100000} step={1} value={value} onChange={e=>setValue(e.target.value)} required/></label>}
-    {kind==='meal'&&<MealInterview imageUrl={prepared?.preview||null} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
+    {kind==='meal'&&<MealInterview key={prepared?.preview||record?.id||'new-meal'} imageUrl={prepared?.preview||null} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
     </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
@@ -120,7 +121,7 @@ function Admin({auth,onError,onPhoto}:{auth:Auth;onError:(error:string)=>void;on
   async function load(){const r=await api<{patients:typeof patients}>(auth,'admin.patients');setPatients(r.patients);}
   useEffect(()=>{load().catch(e=>onError(message(e)));},[]);
   async function create(e:FormEvent){e.preventDefault();setBusy(true);onError('');try{const r=await api<{code?:string}>(auth,'admin.createPatient',{name,isTest,requestId:requestId.current});setCode(r.code||'已建立，邀請碼只於首次建立時顯示。');requestId.current=crypto.randomUUID();await load();}catch(e){onError(message(e));}finally{setBusy(false);}}
-  return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：obm0304@gmail.com</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><label className="prod-choice"><Checkbox checked={isTest} onCheckedChange={v=>{setTest(!!v);requestId.current=crypto.randomUUID();}}/>測試個案，不列入排行榜</label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
+  return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：obm0304@gmail.com</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><TestTube2/>開啟測試個案</a><p className="prod-login-note">請使用已綁定測試個案的 LINE 帳號。</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><label className="prod-choice"><Checkbox checked={isTest} onCheckedChange={v=>{setTest(!!v);requestId.current=crypto.randomUUID();}}/>測試個案，不列入排行榜</label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
     <section className="surface"><h2>個案名冊</h2><div className="prod-records">{patients.map(p=><article key={p.id}><h3>{p.name}{p.isTest?'（測試）':''}</h3><p>{p.bound?'已綁定':'尚未綁定'}・{p.nickname}</p><Button variant="outline" onClick={async()=>{onError('');try{const r=await api<{records:RecordItem[]}>(auth,'admin.records',{patientId:p.id});setSelected(p.name);setRecords(r.records);}catch(e){onError(message(e));}}}>查看紀錄</Button></article>)}</div></section>
     {selected&&<section className="surface"><h2>{selected}的紀錄</h2><RecordList records={records} onPhoto={onPhoto}/></section>}
   </>;
