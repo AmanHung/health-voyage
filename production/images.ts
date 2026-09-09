@@ -20,7 +20,7 @@ export function resized(width:number,height:number,longEdge:number) {
   return {width:Math.max(1,Math.round(width*ratio)),height:Math.max(1,Math.round(height*ratio))};
 }
 export type PreparedImage = {dataUrl:string;preview:string;bytes:number;width:number;height:number};
-export async function prepareImage(file:File,kind:'exercise'|'meal'):Promise<PreparedImage> {
+async function processImage(file:File,kind:'exercise'|'meal'):Promise<PreparedImage> {
   if(!file.size||file.size>MAX_SOURCE_BYTES)throw new Error('照片需小於 20 MB，請重新拍攝。');
   const head=new Uint8Array(await file.slice(0,1024*1024).arrayBuffer());
   const source=dimensions(head);resized(source.width,source.height,1920);
@@ -39,4 +39,15 @@ export async function prepareImage(file:File,kind:'exercise'|'meal'):Promise<Pre
     const dataUrl=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('照片讀取失敗。'));reader.readAsDataURL(blob!);});
     return {dataUrl,preview:URL.createObjectURL(blob),bytes:blob.size,...size};
   } finally {image.close();}
+}
+
+export function prepareImage(file:File,kind:'exercise'|'meal'):Promise<PreparedImage> {
+  return new Promise((resolve,reject)=>{
+    let settled=false;
+    const timer=setTimeout(()=>{settled=true;reject(new Error('圖片處理時間較久，請重新選取較小的 JPG 或 PNG 圖片。'));},20000);
+    void processImage(file,kind).then(image=>{
+      if(settled){URL.revokeObjectURL(image.preview);return;}
+      settled=true;clearTimeout(timer);resolve(image);
+    },error=>{if(!settled){settled=true;clearTimeout(timer);reject(error);}});
+  });
 }

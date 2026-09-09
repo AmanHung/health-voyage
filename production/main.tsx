@@ -12,6 +12,7 @@ import {api,type Auth,type Bootstrap,type Profile,type RecordItem} from './api';
 import {config,configured} from './config';
 import {lineAuth,googleButton,signOut} from './auth';
 import {prepareImage,type PreparedImage} from './images';
+import {startExerciseReading} from './exercise-reader';
 import {MEDS} from '../google/domain.js';
 import {MealInterview,emptyMealInterview} from './meal-interview';
 import {groupsFromInterview,mealInterviewComplete,type MealInterview as MealAnswers} from '../lib/meal-interview';
@@ -97,32 +98,41 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
   const [meal,setMeal]=useState<MealAnswers>(()=>record?.mealDetails?{...emptyMealInterview(),...record.mealDetails}:emptyMealInterview());
   const [mealReady,setMealReady]=useState(kind!=='meal'||Boolean(record?.mealDetails));
   const [status,setStatus]=useState(record?.status||''),[prepared,setPrepared]=useState<PreparedImage|null>(null),[busy,setBusy]=useState(false),[processing,setProcessing]=useState(false),[error,setError]=useState(''),[ocrText,setOcrText]=useState('');
+  const [reading,setReading]=useState(false);
+  const reader=useRef<ReturnType<typeof startExerciseReading>|null>(null),imageEpoch=useRef(0);
   const fileInput=useRef<HTMLInputElement>(null),previewRef=useRef(''),active=useRef(true),request=useRef({body:'',id:''});
-  useEffect(()=>()=>{active.current=false;if(previewRef.current)URL.revokeObjectURL(previewRef.current);},[]);
-  async function select(file?:File){if(!file)return;setProcessing(true);setError('');setOcrText('');setRecognized(null);
-    try{const image=await prepareImage(file,kind==='exercise'?'exercise':'meal');if(!active.current){URL.revokeObjectURL(image.preview);return;}if(previewRef.current)URL.revokeObjectURL(previewRef.current);previewRef.current=image.preview;setPrepared(image);
+  useEffect(()=>{active.current=true;return()=>{active.current=false;imageEpoch.current++;reader.current?.cancel();if(previewRef.current)URL.revokeObjectURL(previewRef.current);};},[]);
+  function manualSteps(){reader.current?.cancel();reader.current=null;setReading(false);setRecognized(null);setOcrText('已改為手動填寫，照片仍會一起保存。');}
+  async function select(file?:File){if(!file)return;const epoch=++imageEpoch.current;reader.current?.cancel();reader.current=null;setReading(false);setProcessing(true);setError('');setOcrText('');setRecognized(null);
+    try{const image=await prepareImage(file,kind==='exercise'?'exercise':'meal');if(!active.current||epoch!==imageEpoch.current){URL.revokeObjectURL(image.preview);return;}if(previewRef.current)URL.revokeObjectURL(previewRef.current);previewRef.current=image.preview;setPrepared(image);
       if(kind==='meal'){setMeal(emptyMealInterview());setMealReady(false);}
       if(kind==='exercise'){
-        setOcrText('正在讀取步數…');
-        const {createWorker}=await import('tesseract.js'),{recognizeExercise}=await import('@/lib/exercise-ocr');
-        const workers:Awaited<ReturnType<typeof createWorker>>[]=[];
-        const create=async(languages:string)=>{const w=await createWorker(languages,1,{workerPath:import.meta.env.BASE_URL+'ocr/worker.min.js',corePath:import.meta.env.BASE_URL+'ocr/core',langPath:import.meta.env.BASE_URL+'ocr/lang',gzip:true});workers.push(w);return w;};
-        try{const result=await recognizeExercise(await create('eng+chi_tra'),image.dataUrl,image,()=>create('eng'),()=>active.current);if(!active.current)return;const v=result.steps;if(v!==null){setValue(String(v));setRecognized(v);setOcrText('已讀取步數，請核對。');}else setOcrText('沒有讀到步數，請直接填寫。');}catch{if(active.current)setOcrText('沒有讀到步數，請直接填寫。');}finally{await Promise.all(workers.map(w=>w.terminate().catch(()=>{})));}
+        setValue('');setReading(true);setOcrText('正在啟動步數辨識…');
+        // Image is ready: reading must never lock manual entry or saving.
+        setProcessing(false);
+        const job=startExerciseReading(image,import.meta.env.BASE_URL,text=>{if(active.current&&epoch===imageEpoch.current)setOcrText(text);});reader.current=job;
+        void job.result.then(result=>{
+          if(!active.current||epoch!==imageEpoch.current||reader.current!==job)return;
+          reader.current=null;setReading(false);
+          if(result.status==='recognized'&&result.steps!==null){setValue(String(result.steps));setRecognized(result.steps);setOcrText('已讀取步數，請核對後保存。');}
+          else if(result.status==='timeout')setOcrText('辨識時間較久，已停止等待。請直接填寫步數，照片仍會保存。');
+          else if(result.status!=='cancelled')setOcrText('沒有讀到步數，請直接填寫，照片仍會保存。');
+        });
       }
-    }catch(e){setError(message(e));}finally{if(active.current)setProcessing(false);}
+    }catch(e){if(active.current&&epoch===imageEpoch.current)setError(message(e));}finally{if(active.current&&epoch===imageEpoch.current)setProcessing(false);}
   }
-  async function submit(e:FormEvent){e.preventDefault();if(busy||processing||(kind==='meal'&&(!mealReady||!mealInterviewComplete(meal))))return;setBusy(true);setError('');try{
+  async function submit(e:FormEvent){e.preventDefault();if(busy||processing||(kind==='meal'&&(!mealReady||!mealInterviewComplete(meal))))return;reader.current?.cancel();reader.current=null;setReading(false);setBusy(true);setError('');try{
     const entry=kind==='exercise'?{kind,date,mode:'steps',value:value.trim()===''?null:Number(value),activity:'步行',recognized}:kind==='meal'?{kind,date,period,groups:groupsFromInterview(meal),eaten:meal.eaten==='還沒吃'?'少量':meal.eaten==='不知道'?'不確定':meal.eaten,drink:meal.drink==='沒有飲料'||meal.drink==='白開水'?'無飲料':meal.drink==='無糖飲料'?'無糖':meal.drink==='含糖飲料'?'含糖':'不確定',restrictedDiet:meal.restrictedDiet===true,mealDetails:meal}:{kind,date,status};
     const payload={record:entry,previousId:record?.id||null,image:prepared?.dataUrl||null};const body=JSON.stringify(payload);if(request.current.body!==body)request.current={body,id:crypto.randomUUID()};
     const result=await api<{record:RecordItem}>(auth,'save',{...payload,requestId:request.current.id});onSaved(result.record);
   }catch(e){setError(message(e));}finally{setBusy(false);}}
   return <form className="prod-form" onSubmit={submit}><fieldset disabled={busy||processing} className="prod-form">
     <label>日期<Input type="date" max={today} value={date} disabled={!!record} onChange={e=>setDate(e.target.value)} required/></label>
-    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onClick={e=>{e.currentTarget.value='';}} onChange={e=>void select(e.target.files?.[0])}/><Button type="button" variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'&&(record?.hasImage||prepared)?'更換餐點照片':kind==='meal'?'選擇餐點照片':'選擇運動截圖'}</Button>{prepared?kind==='meal'?<details className="meal-photo-strip"><summary><img src={prepared.preview} alt=""/><span>已選擇餐點照片<small>點開查看大圖</small></span></summary><img className="prod-photo" src={prepared.preview} alt="本餐照片預覽"/></details>:<><img className="prod-photo" src={prepared.preview} alt="運動截圖預覽"/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>目前保留原照片，可按上方按鈕更換。</p>:<p>照片會自動縮小後保存。</p>}</>}
-    {kind==='exercise'&&<label>確認步數<Input type="number" inputMode="numeric" min={0} max={100000} step={1} value={value} onChange={e=>setValue(e.target.value)} required/></label>}
+    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onClick={e=>{e.currentTarget.value='';}} onChange={e=>void select(e.target.files?.[0])}/><Button type="button" variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'&&(record?.hasImage||prepared)?'更換餐點照片':kind==='meal'?'選擇餐點照片':'選擇運動截圖'}</Button>{prepared?kind==='meal'?<details className="meal-photo-strip"><summary><img src={prepared.preview} alt=""/><span>已選擇餐點照片<small>點開查看大圖</small></span></summary><img className="prod-photo" src={prepared.preview} alt="本餐照片預覽"/></details>:<details className="meal-photo-strip"><summary><img src={prepared.preview} alt=""/><span>已選擇運動截圖<small>已縮小為 {Math.round(prepared.bytes/1024)} KB，點開查看</small></span></summary><img className="prod-photo" src={prepared.preview} alt="運動截圖預覽"/></details>:record?.hasImage?<p>目前保留原照片，可按上方按鈕更換。</p>:<p>照片會自動縮小後保存。</p>}</>}
+    {kind==='exercise'&&<label>確認步數<Input type="number" inputMode="numeric" min={0} max={100000} step={1} value={value} onChange={e=>{if(reading)manualSteps();setValue(e.target.value);}} required/><span className="prod-login-note">可以直接輸入，不必等待自動辨識。</span></label>}
     {kind==='meal'&&<MealInterview key={prepared?.preview||record?.id||'new-meal'} imageUrl={prepared?.preview||null} hasSavedImage={Boolean(record?.hasImage)} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
-    </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
+    </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{reading&&<Button type="button" variant="outline" onClick={manualSteps}>不用等待，手動填寫步數</Button>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
 function Admin({auth,today,onError,onPhoto}:{auth:Auth;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
   const [patients,setPatients]=useState<(Profile&{name:string;bound:boolean})[]>([]),[name,setName]=useState('測試個案 001'),[isTest,setTest]=useState(true),[busy,setBusy]=useState(false),[code,setCode]=useState(''),[records,setRecords]=useState<RecordItem[]>([]),[selected,setSelected]=useState('');
