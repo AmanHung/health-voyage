@@ -1,6 +1,7 @@
 import {config} from './config';
 export type Auth = {provider:'line'|'google';token:string};
-export type Profile = {id:string;nickname:string;participating:boolean;isTest:boolean;active:boolean};
+import type {ActivityGoal} from '../lib/activity-goal';
+export type Profile = {id:string;nickname:string;participating:boolean;isTest:boolean;active:boolean;activityGoals?:ActivityGoal[]};
 import type {MealInterview} from '../lib/meal-interview';
 export type RecordItem = {id:string;patientId:string;date:string;kind:'exercise'|'meal'|'medicine';createdAt:string;hasImage:boolean;mode?:'steps'|'minutes';value?:number;activity?:string;recognized?:number|null;period?:string;groups?:string[];eaten?:string;drink?:string;restrictedDiet?:boolean;mealDetails?:MealInterview;feedback?:string;status?:string};
 export type Bootstrap = {role:'admin'|'patient';today:string;bound?:boolean;profile?:Profile;records?:RecordItem[];email?:string};

@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import {Anchor,ArrowRight,Award,CalendarDays,Check,ChevronRight,Compass,Flag,Footprints,Home,Lock,Map,MessageCircle,Pill,Ship,Star,Sun,Utensils,UserRound} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Progress} from '@/components/ui/progress';
@@ -18,12 +19,13 @@ export function WeeklyProgress({progress}:{progress:VoyageProgress}) {
     <p>{progress.weeklyDays>=progress.weeklyGoal?'本週挑戰完成！每一份努力都已留下。':`再累積 ${progress.weeklyGoal-progress.weeklyDays} 天，完成本週小挑戰。`}</p>
   </div>;
 }
-export function VoyageHome({nickname,progress,records,onTask,onNavigate}:{nickname:string;progress:VoyageProgress;records:RecordItem[];onTask:(kind:RecordItem['kind'],record?:RecordItem)=>void;onNavigate:(view:PatientView)=>void}) {
+export function VoyageHome({nickname,progress,records,onTask,onNavigate,children}:{nickname:string;progress:VoyageProgress;records:RecordItem[];onTask:(kind:RecordItem['kind'],record?:RecordItem)=>void;onNavigate:(view:PatientView)=>void;children?:ReactNode}) {
   const today=progress.today;
   return <>
     <div className="voyage-greeting"><span><Sun aria-hidden/>{nickname}，您好</span><span>{Number(today.slice(5,7))} 月 {Number(today.slice(8))} 日</span></div>
     <div className="voyage-home-grid"><section className="voyage-hero"><img src={base+'voyage/coast.webp'} alt="" width="1536" height="512" fetchPriority="high"/><div className="voyage-hero-copy"><span className="voyage-eyebrow">我的健康航程</span><h1>今天也為自己<br/>前進一步</h1><p>每一次行動，都留下足跡。</p></div><div className="voyage-hero-status"><Ship aria-hidden/><span>{progress.currentPort?`已抵達${progress.currentPort.name}`:'準備啟程'}<strong>累積 {progress.totalDays} 個紀錄日</strong></span></div></section>
     <section className="voyage-today" aria-label="今日三項任務"><div className="voyage-section-heading"><h2>今天的小行動</h2><span>{progress.todayCount}／3 已記錄</span></div><div className="voyage-task-list">{tasks.map(({kind,Icon,title,detail,action})=>{const record=records.find(r=>r.date===today&&r.kind===kind);return <Button key={kind} variant="outline" className={`voyage-task ${kind} ${record?'recorded':''}`} onClick={()=>onTask(kind,record)}><span className="voyage-task-icon"><Icon aria-hidden/></span><span className="voyage-task-text"><strong>{title}</strong><span>{record?'已記錄，點此查看或修改':detail}</span></span><span className="voyage-task-action">{record?<><Check aria-hidden/><span>已記錄</span></>:<><span>{action}</span><ChevronRight aria-hidden/></>}</span></Button>;})}</div></section></div>
+    {children}
     <div className="voyage-home-bottom"><WeeklyProgress progress={progress}/><section className="voyage-next"><span className="voyage-icon-label"><Compass aria-hidden/>下一站，期待與您相遇</span><h2>{progress.nextPort?.name||'新的足跡，繼續累積'}</h2><p>{progress.nextPort?`再累積 ${progress.nextPort.days-progress.totalDays} 個紀錄日，就能抵達。`:'這條航線已完成，紀錄與成就繼續為您珍藏。'}</p><Button variant="ghost" onClick={()=>onNavigate('journey')}>看看我的航程<ArrowRight aria-hidden/></Button></section></div>
   </>;
 }

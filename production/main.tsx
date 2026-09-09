@@ -21,6 +21,8 @@ import '@/app/globals.css';
 import './style.css';
 import './voyage.css';
 import './meal-flow.css';
+import {ActivityGoalCard,AdminActivityGoal} from './activity-goal';
+import './activity-goal.css';
 
 type View=PatientView|'admin';
 const taskNames={exercise:'運動',meal:'飲食',medicine:'用藥'};
@@ -59,10 +61,10 @@ function App(){
     <main className="prod-content">
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
       {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>Google 與 LINE 連線完成後，才會開放測試。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><p className="prod-login-note">測試個案也使用已綁定的 LINE 帳號登入。</p><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
-      data.role==='admin'?<Admin auth={auth} onError={setError} onPhoto={photo}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
+      data.role==='admin'?<Admin auth={auth} today={data.today} onError={setError} onPhoto={photo}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {profile?.isTest&&<p className="prod-test">測試個案・不列入正式排行榜</p>}
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
-      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}/>}
+      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
       {view==='journey'&&progress&&<><VoyageJourney progress={progress}/><section className="surface prod-rank"><h2><Trophy/>{Number(data.today.slice(5,7))} 月同行步數榜</h2>{rankError?<p role="status">{rankError}</p>:rows.length?<ol>{rows.map((row,i)=><li key={i}><span>{i+1}．{row.nickname}</span><strong>{row.steps.toLocaleString()} 步</strong></li>)}</ol>:<p>本月尚無步數紀錄。</p>}<p>以暱稱顯示，測試個案不列入。依自己的能力活動，不必追趕他人。</p></section></>}
       {view==='achievements'&&progress&&<VoyageAchievements progress={progress}/>}
       {view==='history'&&<><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine').map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/><section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section></>}
@@ -122,14 +124,17 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
     </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
-function Admin({auth,onError,onPhoto}:{auth:Auth;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
+function Admin({auth,today,onError,onPhoto}:{auth:Auth;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
   const [patients,setPatients]=useState<(Profile&{name:string;bound:boolean})[]>([]),[name,setName]=useState('測試個案 001'),[isTest,setTest]=useState(true),[busy,setBusy]=useState(false),[code,setCode]=useState(''),[records,setRecords]=useState<RecordItem[]>([]),[selected,setSelected]=useState('');
+  const [goalPatientId,setGoalPatientId]=useState('');
+  const goalPatient=patients.find(p=>p.id===goalPatientId);
   const requestId=useRef(crypto.randomUUID());
   async function load(){const r=await api<{patients:typeof patients}>(auth,'admin.patients');setPatients(r.patients);}
   useEffect(()=>{load().catch(e=>onError(message(e)));},[]);
   async function create(e:FormEvent){e.preventDefault();setBusy(true);onError('');try{const r=await api<{code?:string}>(auth,'admin.createPatient',{name,isTest,requestId:requestId.current});setCode(r.code||'已建立，邀請碼只於首次建立時顯示。');requestId.current=crypto.randomUUID();await load();}catch(e){onError(message(e));}finally{setBusy(false);}}
   return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：obm0304@gmail.com</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><TestTube2/>開啟測試個案</a><p className="prod-login-note">請使用已綁定測試個案的 LINE 帳號。</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><label className="prod-choice"><Checkbox checked={isTest} onCheckedChange={v=>{setTest(!!v);requestId.current=crypto.randomUUID();}}/>測試個案，不列入排行榜</label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
-    <section className="surface"><h2>個案名冊</h2><div className="prod-records">{patients.map(p=><article key={p.id}><h3>{p.name}{p.isTest?'（測試）':''}</h3><p>{p.bound?'已綁定':'尚未綁定'}・{p.nickname}</p><Button variant="outline" onClick={async()=>{onError('');try{const r=await api<{records:RecordItem[]}>(auth,'admin.records',{patientId:p.id});setSelected(p.name);setRecords(r.records);}catch(e){onError(message(e));}}}>查看紀錄</Button></article>)}</div></section>
+    <section className="surface"><div className="prod-actions"><h2>個案名冊</h2><Button variant="ghost" onClick={()=>{setGoalPatientId('');load().catch(e=>onError(message(e)));}}>重新整理名冊</Button></div><div className="prod-records">{patients.map(p=><article key={p.id}><h3>{p.name}{p.isTest?'（測試）':''}</h3><p>{p.bound?'已綁定':'尚未綁定'}・{p.nickname}</p><Button variant="outline" onClick={async()=>{onError('');try{const r=await api<{records:RecordItem[]}>(auth,'admin.records',{patientId:p.id});setSelected(p.name);setRecords(r.records);}catch(e){onError(message(e));}}}>查看紀錄</Button> <Button variant="outline" disabled={!p.active} onClick={()=>setGoalPatientId(p.id)}>設定活動目標</Button></article>)}</div></section>
+    {goalPatient&&<AdminActivityGoal key={goalPatient.id} auth={auth} patient={goalPatient} today={today} onSaved={profile=>setPatients(current=>current.map(p=>p.id===profile.id?{...p,...profile}:p))}/>}
     {selected&&<section className="surface"><h2>{selected}的紀錄</h2><RecordList records={records} onPhoto={onPhoto}/></section>}
   </>;
 }

@@ -110,3 +110,44 @@ test('real Taiwan day, future dates, integer ranges and single metric validated'
   assert.throws(()=>validateRecord({kind:'exercise',date:'2026-09-03',mode:'minutes',value:1.5,activity:'步行'},'2026-09-03'));
   const value=validateRecord({kind:'exercise',date:'2026-09-03',mode:'minutes',value:30,activity:'步行',steps:999999},'2026-09-03');assert.equal('steps' in value,false);
 });
+
+test('activity goals are admin-only, private to each patient and preserved across profile edits',()=>{
+  const e=environment(),p=e.patient('A'),other=e.patient('B');
+  const body={patientId:p.id,steps:3000,previousId:null,requestId:randomUUID()};
+  assert.equal(e.call('admin.activityGoal',body,p.identity).ok,false);
+  const saved=e.call('admin.activityGoal',body);assert.equal(saved.ok,true,saved.error);
+  const goals=saved.data.profile.activityGoals;
+  assert.equal(goals[0].effectiveFrom,dayKey());assert.equal(goals[0].steps,3000);
+  assert.deepEqual(Object.keys(goals[0]).sort(),['effectiveFrom','id','steps']);
+  assert.deepEqual(e.call('bootstrap',{},p.identity).data.profile.activityGoals,goals);
+  assert.deepEqual(e.call('bootstrap',{patientId:p.id},other.identity).data.profile.activityGoals,[]);
+  const forged=e.call('profile',{nickname:'新暱稱',activityGoals:[{steps:1}]},p.identity);
+  assert.deepEqual(forged.data.profile.activityGoals,goals);
+  const auditRows=e.books.get(e.properties.get('RECORD_SHEET_ID')).getSheetByName('Audit').rows.slice(1).map(r=>JSON.parse(r[4]));
+  const audit=auditRows.find(r=>r.action==='activityGoal.update');
+  assert.equal(audit.target,p.id);assert.equal(audit.details.steps,3000);assert.equal(audit.details.goalId,goals[0].id);
+});
+test('goal retry is idempotent, stale writes conflict, history retained and changes start tomorrow',()=>{
+  const e=environment(),p=e.patient('A'),body={patientId:p.id,steps:3000,previousId:null,requestId:randomUUID()};
+  const first=e.call('admin.activityGoal',body).data.profile.activityGoals[0];
+  assert.equal(e.call('admin.activityGoal',body).data.profile.activityGoals.length,1);
+  assert.equal(e.call('admin.activityGoal',{...body,steps:4000}).ok,false);
+  assert.equal(e.call('admin.activityGoal',{...body,steps:4000,requestId:randomUUID()}).ok,false);
+  const second=e.call('admin.activityGoal',{...body,steps:4000,previousId:first.id,requestId:randomUUID(),effectiveFrom:'2000-01-01'}).data.profile.activityGoals;
+  assert.equal(second.length,2);assert.deepEqual(second[0],first);
+  const tomorrow=new Date(Date.parse(dayKey()+'T00:00:00Z')+86400000).toISOString().slice(0,10);
+  assert.equal(second[1].effectiveFrom,tomorrow);
+  const paused=e.call('admin.activityGoal',{...body,steps:null,previousId:second[1].id,requestId:randomUUID()}).data.profile.activityGoals;
+  assert.equal(paused.length,3);assert.equal(paused[2].steps,null);assert.equal(paused[2].effectiveFrom,tomorrow);
+  assert.equal(e.call('admin.activityGoal',body).data.profile.activityGoals.length,3);
+});
+test('invalid and inactive patient goals fail without writes; service advertises goal capability',()=>{
+  const e=environment(),p=e.patient('A');
+  for(const steps of [null,0,-1,1.2,100001,'3000',undefined])assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps,requestId:randomUUID()}).ok,false);
+  assert.equal(e.call('admin.activityGoal',{patientId:'missing',steps:3000,requestId:randomUUID()}).ok,false);
+  const row=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows[1];
+  const stored=JSON.parse(row[5]);stored.active=false;row[5]=JSON.stringify(stored);
+  assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps:3000,requestId:randomUUID()}).ok,false);
+  assert.equal(JSON.parse(row[5]).activityGoals,undefined);
+  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals']);
+});

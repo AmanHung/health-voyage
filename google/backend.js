@@ -36,7 +36,7 @@ function locked(fn) {
   need(lock.tryLock(15000), '目前使用人數較多，請稍後再試。');
   try { return fn(); } finally { lock.releaseLock(); }
 }
-function audit(actor, action, target) { write('Audit', { createdAt: new Date().toISOString(), actor, action, target }); }
+function audit(actor, action, target, details) { write('Audit', { createdAt: new Date().toISOString(), actor, action, target, ...(details?{details}:{}) }); }
 function fetchJson(url, options = {}) {
   const r = UrlFetchApp.fetch(url, { ...options, muteHttpExceptions: true });
   need(r.getResponseCode() === 200, '登入已失效，請重新登入。');
@@ -69,7 +69,7 @@ function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
   need(p && p.active, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, participating:p.participating, isTest:p.isTest, active:p.active}; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, participating:p.participating, isTest:p.isTest, active:p.active,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
 function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; return o; }
 function checkRate(subject) {
   const c = CacheService.getScriptCache(), key = 'rate:' + hash(subject), count = Number(c.get(key) || 0);
@@ -138,6 +138,27 @@ export function dispatch(action, payload, identity) {
     });
   }
   if (action === 'admin.patients') { admin(identity); return {patients:read('Patients').map(p=>({...publicPerson(p),name:p.name,bound:!!p.subject}))}; }
+  if (action === 'admin.activityGoal') {
+    admin(identity);
+    const requestId=cleanText(payload.requestId,16,64,'操作編號');
+    need(payload.steps===null||(typeof payload.steps==='number'&&Number.isInteger(payload.steps)&&payload.steps>0&&payload.steps<=100000),'請填寫 1 至 100,000 的整數步數，或選擇暫停目標。');
+    return locked(()=> {
+      const p=read('Patients').find(p=>p.id===payload.patientId);need(p&&p.active,'找不到可設定的個案。');
+      const history=p.activityGoals||[],previous=history[history.length-1]||null;
+      const fingerprint=hash(JSON.stringify([payload.steps,payload.previousId||null]));
+      const retry=history.find(g=>g.requestId===requestId);
+      if(retry){need(retry.fingerprint===fingerprint,'請重新提交更新後的目標。');return {profile:publicPerson(p)};}
+      need((previous?.id||null)===(payload.previousId||null),'目標已更新，請重新整理名冊後再設定。');
+      need(payload.steps!==null||previous,'尚未設定活動目標。');
+      // Initial goal starts today. Later changes start tomorrow, protecting all
+      // completed days and today's target; same-day edits retain every revision.
+      const effectiveFrom=previous?new Date(Date.parse(today+'T00:00:00Z')+86400000).toISOString().slice(0,10):today;
+      const goal={id:Utilities.getUuid(),steps:payload.steps,effectiveFrom,createdAt:new Date().toISOString(),createdBy:identity.subject,requestId,fingerprint};
+      p.activityGoals=[...history,goal];write('Patients',p,p._row);
+      audit(identity.subject,'activityGoal.update',p.id,{previousId:previous?.id||null,goalId:goal.id,steps:goal.steps,effectiveFrom});
+      return {profile:publicPerson(p)};
+    });
+  }
   if (action === 'admin.records') {
     admin(identity);const p=read('Patients').find(p=>p.id===payload.patientId);need(p,'找不到個案。');
     audit(identity.subject,'records.read',p.id);
@@ -193,7 +214,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:1,acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:2,capabilities:['activityGoals'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');
