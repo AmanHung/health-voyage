@@ -15,10 +15,13 @@ import {prepareImage,type PreparedImage} from './images';
 import {MEDS} from '../google/domain.js';
 import {MealInterview,emptyMealInterview} from './meal-interview';
 import {groupsFromInterview,mealInterviewComplete,type MealInterview as MealAnswers} from '../lib/meal-interview';
+import {voyageProgress} from '../lib/voyage';
+import {VoyageHome,VoyageJourney,VoyageAchievements,VoyageNavigation,HistoryLink,type PatientView} from './voyage';
 import '@/app/globals.css';
 import './style.css';
+import './voyage.css';
 
-type View='home'|'history'|'account'|'admin';
+type View=PatientView|'admin';
 const taskNames={exercise:'運動',meal:'飲食',medicine:'用藥'};
 function message(error:unknown){return error instanceof Error?error.message:'操作未完成，請再試一次。';}
 function Choice({label,options,value,onChange}:{label:string;options:string[];value:string;onChange:(value:string)=>void}){
@@ -29,6 +32,7 @@ function App(){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[adminLogin,setAdminLogin]=useState(false);
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
   const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<{nickname:string;steps:number}[]>([]),[rankError,setRankError]=useState('');
+  const [celebration,setCelebration]=useState(0);
   const googleEl=useRef<HTMLDivElement>(null);const authEpoch=useRef(0);
   async function login(identity:Auth){
     const epoch=++authEpoch.current;setBusy(true);setError('');
@@ -42,29 +46,31 @@ function App(){
   function logout(){authEpoch.current++;signOut();setAuth(null);setData(null);setRows([]);setImage(null);setModal(null);setAdminLogin(false);setNotice('');setError('');setBusy(false);}
   async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id});setImage(result.dataUrl);}catch(e){setError(message(e));}finally{setBusy(false);}}
   const records=data?.records||[],profile=data?.profile;
+  const progress=data?voyageProgress(records,data.today):null;
+  function navigate(next:PatientView){setView(next);setNotice('');window.scrollTo({top:0,behavior:'instant'});}
   const updateProfile=(p:Profile)=>setData(d=>d?{...d,profile:p}:d);
-  return <div className="prod-app">
+  return <div className={`prod-app ${data?.role==='patient'&&data.bound?'has-voyage-nav':''}`}>
     <header className="topbar home-topbar"><Button variant="ghost" className="home-brand" onClick={()=>setView(data?.role==='admin'?'admin':'home')}><Compass aria-hidden/><span>健康航程</span></Button>
     {data&&auth&&<DropdownMenu><DropdownMenuTrigger className="profile-trigger" aria-label="個人選單">{data.role==='admin'?'管':Array.from(profile?.nickname||'我')[0]}</DropdownMenuTrigger><DropdownMenuContent className="profile-menu" align="end">
       {data.role==='admin'?<DropdownMenuItem onClick={()=>setView('admin')}><Shield/>管理後臺</DropdownMenuItem>:<><DropdownMenuItem onClick={()=>setView('home')}><Home/>首頁</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('history')}><CalendarDays/>健康紀錄</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('account')}><Settings/>我的帳號</DropdownMenuItem></>}
       <DropdownMenuItem onClick={logout}><LogOut/>登出</DropdownMenuItem>
     </DropdownMenuContent></DropdownMenu>}</header>
     <main className="prod-content">
-      {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<p role="status" className="prod-success">{notice}</p>}
-      {!configured()?<section className="surface prod-login"><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>Google 與 LINE 連線完成後，才會開放測試。</p></section>:!auth||!data?<section className="surface prod-login"><Compass aria-hidden/><h1>每天一小步</h1><p>記下運動、飲食與用藥。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 登入'}</Button><p className="prod-login-note">測試個案也使用已綁定的 LINE 帳號登入。</p><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
+      {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
+      {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>Google 與 LINE 連線完成後，才會開放測試。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><p className="prod-login-note">測試個案也使用已綁定的 LINE 帳號登入。</p><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
       data.role==='admin'?<Admin auth={auth} onError={setError} onPhoto={photo}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {profile?.isTest&&<p className="prod-test">測試個案・不列入正式排行榜</p>}
-      {view!=='home'&&<Button variant="ghost" onClick={()=>setView('home')}><ArrowLeft/>回首頁</Button>}
-      {view==='home'&&<><section className="prod-welcome"><h1>{profile?.nickname}，您好</h1><p>{data.today}・今天記錄 {records.filter(r=>r.date===data.today).length}／3 項</p></section>
-      <div className="prod-tasks">{([{kind:'exercise',Icon:Footprints,title:'步數紀錄',sub:'上傳截圖・自動讀取步數'},{kind:'meal',Icon:Utensils,title:'拍下這一餐',sub:'每天記錄一餐'},{kind:'medicine',Icon:Pill,title:'用藥紀錄',sub:'如實記下今天情形'}] as const).map(({kind,Icon,title,sub})=>{const record=records.find(r=>r.date===data.today&&r.kind===kind);return <Button variant="outline" className={'prod-task '+(record?'done':'')} key={kind} onClick={()=>setModal({kind,record})}><Icon aria-hidden/><strong>{title}</strong><span>{record?'已記錄・點此修改':sub}</span>{record&&<Check aria-hidden/>}</Button>;})}</div>
-      <div className="home-overview"><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine').map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/>
-      <section className="surface prod-rank"><h2><Trophy/>{Number(data.today.slice(5,7))} 月步數榜</h2>{rankError?<p role="status">{rankError}</p>:rows.length?<ol>{rows.map((row,i)=><li key={i}><span>{i+1}．{row.nickname}</span><strong>{row.steps.toLocaleString()} 步</strong></li>)}</ol>:<p>本月尚無步數紀錄。</p>}<p>以暱稱顯示，測試個案不列入。</p></section></div></>}
-      {view==='history'&&<section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section>}
-      {view==='account'&&profile&&<Account auth={auth} profile={profile} onSaved={p=>{updateProfile(p);setNotice('個人設定已保存。');}}/>}
+      {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
+      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}/>}
+      {view==='journey'&&progress&&<><VoyageJourney progress={progress}/><section className="surface prod-rank"><h2><Trophy/>{Number(data.today.slice(5,7))} 月同行步數榜</h2>{rankError?<p role="status">{rankError}</p>:rows.length?<ol>{rows.map((row,i)=><li key={i}><span>{i+1}．{row.nickname}</span><strong>{row.steps.toLocaleString()} 步</strong></li>)}</ol>:<p>本月尚無步數紀錄。</p>}<p>以暱稱顯示，測試個案不列入。依自己的能力活動，不必追趕他人。</p></section></>}
+      {view==='achievements'&&progress&&<VoyageAchievements progress={progress}/>}
+      {view==='history'&&<><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine').map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/><section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section></>}
+      {view==='account'&&profile&&<><HistoryLink onClick={()=>navigate('history')}/><Account auth={auth} profile={profile} onSaved={p=>{updateProfile(p);setNotice('個人設定已保存。');}}/></>}
       </>}
       <footer className="prod-footer">紀錄供照護追蹤，不作即時醫療監測。身體不適請直接就醫。<span className="prod-legal"><a href="./privacy.html">隱私權政策</a><a href="./terms.html">服務條款</a></span></footer>
     </main>
-    {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className="prod-dialog"><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription><RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={r=>{setData(d=>d?{...d,records:[...(d.records||[]).filter(x=>!(x.date===r.date&&x.kind===r.kind)),r]}:d);setModal(null);setNotice(r.kind==='meal'&&r.feedback?`本餐回饋：${r.feedback}`:'紀錄已保存。');}}/></DialogContent></Dialog>}
+    {data?.role==='patient'&&data.bound&&view!=='admin'&&<VoyageNavigation view={view} onNavigate={navigate}/>}
+    {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className={`prod-dialog voyage-dialog ${modal.kind}`}><span className="voyage-eyebrow">今天的小行動</span><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription><RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={r=>{const newDay=!records.some(old=>old.date===r.date);setData(d=>d?{...d,records:[...(d.records||[]).filter(x=>!(x.date===r.date&&x.kind===r.kind)),r]}:d);setModal(null);setCelebration(n=>n+1);setNotice(r.kind==='meal'&&r.feedback?`本餐回饋：${r.feedback}${newDay?' 航程新增一個紀錄日。':''}`:newDay?'紀錄已保存，航程新增一個紀錄日！':'紀錄已保存，每份努力都留下足跡。');}}/></DialogContent></Dialog>}
     {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><img src={image} alt="已保存的紀錄照片" className="prod-photo"/></DialogContent></Dialog>}
   </div>;
 }
