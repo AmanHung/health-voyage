@@ -20,6 +20,7 @@ import {VoyageHome,VoyageJourney,VoyageAchievements,VoyageNavigation,HistoryLink
 import '@/app/globals.css';
 import './style.css';
 import './voyage.css';
+import './meal-flow.css';
 
 type View=PatientView|'admin';
 const taskNames={exercise:'運動',meal:'飲食',medicine:'用藥'};
@@ -108,16 +109,16 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
       }
     }catch(e){setError(message(e));}finally{if(active.current)setProcessing(false);}
   }
-  async function submit(e:FormEvent){e.preventDefault();if(busy||processing)return;setBusy(true);setError('');try{
+  async function submit(e:FormEvent){e.preventDefault();if(busy||processing||(kind==='meal'&&(!mealReady||!mealInterviewComplete(meal))))return;setBusy(true);setError('');try{
     const entry=kind==='exercise'?{kind,date,mode:'steps',value:value.trim()===''?null:Number(value),activity:'步行',recognized}:kind==='meal'?{kind,date,period,groups:groupsFromInterview(meal),eaten:meal.eaten==='還沒吃'?'少量':meal.eaten==='不知道'?'不確定':meal.eaten,drink:meal.drink==='沒有飲料'||meal.drink==='白開水'?'無飲料':meal.drink==='無糖飲料'?'無糖':meal.drink==='含糖飲料'?'含糖':'不確定',restrictedDiet:meal.restrictedDiet===true,mealDetails:meal}:{kind,date,status};
     const payload={record:entry,previousId:record?.id||null,image:prepared?.dataUrl||null};const body=JSON.stringify(payload);if(request.current.body!==body)request.current={body,id:crypto.randomUUID()};
     const result=await api<{record:RecordItem}>(auth,'save',{...payload,requestId:request.current.id});onSaved(result.record);
   }catch(e){setError(message(e));}finally{setBusy(false);}}
   return <form className="prod-form" onSubmit={submit}><fieldset disabled={busy||processing} className="prod-form">
     <label>日期<Input type="date" max={today} value={date} disabled={!!record} onChange={e=>setDate(e.target.value)} required/></label>
-    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onClick={e=>{e.currentTarget.value='';}} onChange={e=>void select(e.target.files?.[0])}/><Button type="button" variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'&&record?.hasImage?'更換餐點照片':kind==='meal'?'選擇餐點照片':'選擇運動截圖'}</Button>{prepared?<><img className="prod-photo" src={prepared.preview} alt={kind==='meal'?'餐盤照片預覽':'運動截圖預覽'}/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>目前保留原照片，可按上方按鈕更換。</p>:<p>照片會自動縮小後保存。</p>}</>}
+    {kind!=='medicine'&&<><input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png" onClick={e=>{e.currentTarget.value='';}} onChange={e=>void select(e.target.files?.[0])}/><Button type="button" variant="outline" onClick={()=>fileInput.current?.click()}><Camera/>{kind==='meal'&&(record?.hasImage||prepared)?'更換餐點照片':kind==='meal'?'選擇餐點照片':'選擇運動截圖'}</Button>{prepared?kind==='meal'?<details className="meal-photo-strip"><summary><img src={prepared.preview} alt=""/><span>已選擇餐點照片<small>點開查看大圖</small></span></summary><img className="prod-photo" src={prepared.preview} alt="本餐照片預覽"/></details>:<><img className="prod-photo" src={prepared.preview} alt="運動截圖預覽"/><p>已縮小為 {Math.round(prepared.bytes/1024)} KB</p></>:record?.hasImage?<p>目前保留原照片，可按上方按鈕更換。</p>:<p>照片會自動縮小後保存。</p>}</>}
     {kind==='exercise'&&<label>確認步數<Input type="number" inputMode="numeric" min={0} max={100000} step={1} value={value} onChange={e=>setValue(e.target.value)} required/></label>}
-    {kind==='meal'&&<MealInterview key={prepared?.preview||record?.id||'new-meal'} imageUrl={prepared?.preview||null} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
+    {kind==='meal'&&<MealInterview key={prepared?.preview||record?.id||'new-meal'} imageUrl={prepared?.preview||null} hasSavedImage={Boolean(record?.hasImage)} period={period} onPeriod={setPeriod} value={meal} onChange={setMeal} onReady={setMealReady}/>}
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
     </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }

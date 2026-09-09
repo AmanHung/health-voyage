@@ -1,0 +1,18 @@
+.meal-photo-strip {border:1px solid #d8e7f2;border-radius:16px;background:#fff;padding:10px;}
+.meal-photo-strip summary {display:flex;align-items:center;gap:12px;cursor:pointer;min-height:56px;color:#173553;}
+.meal-photo-strip summary>img {width:56px;height:56px;object-fit:cover;border-radius:10px;flex-shrink:0;}
+.meal-photo-strip summary>span {font-size:1.0625rem;font-weight:700;}
+.meal-photo-strip small {display:block;font-size:.9375rem;color:#526b82;font-weight:400;margin-top:4px;}
+.meal-photo-strip[open]>.prod-photo {margin-top:12px;max-height:300px;}
+.meal-photo-strip summary:focus-visible {outline:3px solid #1768d9;outline-offset:3px;border-radius:8px;}
+.meal-review-list {display:grid;text-align:left;}
+.meal-review-row {display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #dbe7f2;}
+.meal-review-row>div {min-width:0;display:grid;gap:5px;}
+.meal-review-row>div>span {font-size:1rem;color:#526b82;line-height:1.5;}
+.meal-review-row strong {font-size:1.1875rem;color:#173553;overflow-wrap:anywhere;}
+.prod-dialog .meal-review-row button {min-height:48px;padding:10px;font-size:1rem;color:#175fb6;flex-shrink:0;}
+.prod-dialog .meal-review-row button>svg {width:18px;height:18px;}
+.meal-review-note {font-size:1rem;color:#526b82;}
+.meal-question h3:focus {outline:none;}
+.prod-dialog .meal-analyzing button {margin-top:18px;background:white;color:#175fb6;}
+@media(max-width:380px){.meal-review-row{gap:8px;}.prod-dialog .meal-review-row button{flex-direction:column;gap:3px;}.meal-review-row strong{font-size:1.0625rem;}}
