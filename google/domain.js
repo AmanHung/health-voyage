@@ -59,13 +59,15 @@ export function validateRecord(input, today) {
   requireValue(MEDS.includes(input.status), '請選擇用藥情形。');
   return { kind, date, status: input.status };
 }
-export function latest(records) {
+export function latest(records, includeDeleted = false) {
   const map = new Map();
   for (const r of records) map.set(`${r.patientId}:${r.kind}:${r.date}`, r);
-  return [...map.values()];
+  // Select the final revision before filtering: deleting a record must never
+  // reveal an earlier revision as if it were still current.
+  return [...map.values()].filter(r => includeDeleted || !r.deletedAt);
 }
 export function leaderboard(patients, records, month) {
-  return patients.filter(p => p.active && !p.isTest).map(p => ({
+  return patients.filter(p => p.active && !p.deletedAt && !p.isTest).map(p => ({
     nickname: p.nickname,
     steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)).reduce((sum, r) => sum + r.value, 0),
   })).sort((a,b) => b.steps - a.steps).slice(0, 20);

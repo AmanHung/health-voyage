@@ -67,10 +67,19 @@ export function authenticate(auth) {
 function admin(identity) { need(identity.role === 'admin', '沒有管理員權限。'); }
 function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
-  need(p && p.active, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
+  need(p && p.active && !p.deletedAt, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, participating:p.participating, isTest:p.isTest, active:p.active,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
-function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; return o; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, participating:p.participating, isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
+function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
+function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
+function visibleRecordIds(records) {
+  const byId=new Map(records.map(r=>[r.id,r])),visible=new Set();
+  for(const current of latest(records)) {
+    let r=current;
+    while(r&&!visible.has(r.id)){visible.add(r.id);r=byId.get(r.previousId);}
+  }
+  return visible;
+}
 function checkRate(subject) {
   const c = CacheService.getScriptCache(), key = 'rate:' + hash(subject), count = Number(c.get(key) || 0);
   need(count < 40, '操作太頻繁，請稍後再試。'); c.put(key, String(count+1), 60);
@@ -103,7 +112,7 @@ export function dispatch(action, payload, identity) {
     if (identity.role === 'admin') return {role:'admin', email:ADMIN, today};
     const p = read('Patients').find(x=>x.subject===identity.subject);
     if (!p) return {role:'patient', bound:false, today};
-    need(p.active, '帳號已停用，請聯絡照護團隊。');
+    need(p.active && !p.deletedAt, '帳號已停用，請聯絡照護團隊。');
     return {role:'patient',bound:true,today,profile:publicPerson(p),records:latest(read('Records').filter(r=>r.patientId===p.id)).map(publicRecord)};
   }
   if (action === 'admin.createPatient') {
@@ -129,21 +138,57 @@ export function dispatch(action, payload, identity) {
       cache.put(attemptKey,String(attempts+1),3600);
       const people=read('Patients');
       const existing = people.find(p=>p.subject===identity.subject);
-      if(existing) { need(existing.active,'帳號已停用。'); return {profile:publicPerson(existing)}; }
+      if(existing) { need(existing.active&&!existing.deletedAt,'帳號已停用。'); return {profile:publicPerson(existing)}; }
       const p=people.find(p=>p.inviteHash===hash(code));
-      need(p && p.active && !p.subject && !p.inviteUsedAt && p.inviteExpiresAt>Date.now(),'邀請碼錯誤、已使用或已過期。');
+      need(p && p.active && !p.deletedAt && !p.subject && !p.inviteUsedAt && p.inviteExpiresAt>Date.now(),'邀請碼錯誤、已使用或已過期。');
       p.subject=identity.subject;p.nickname=nickname;p.inviteUsedAt=new Date().toISOString();
       write('Patients',p,p._row);audit(identity.subject,'patient.bind',p.id);
       return {profile:publicPerson(p)};
     });
   }
-  if (action === 'admin.patients') { admin(identity); return {patients:read('Patients').map(p=>({...publicPerson(p),name:p.name,bound:!!p.subject}))}; }
+  if (action === 'admin.patients') { admin(identity); return {patients:read('Patients').map(adminPerson)}; }
+  if (action === 'admin.patientStatus') {
+    admin(identity);need(typeof payload.deleted==='boolean','請確認刪除或復原操作。');
+    const requestId=cleanText(payload.requestId,16,64,'操作編號');
+    return locked(()=>{
+      const p=read('Patients').find(p=>p.id===payload.patientId);need(p,'找不到個案。');
+      const history=p.stateChanges||[],version=history.slice(-1)[0]?.id||null;
+      const fingerprint=hash(JSON.stringify([payload.deleted,payload.previousVersion||null]));
+      const retry=history.find(change=>change.requestId===requestId);
+      if(retry){need(retry.fingerprint===fingerprint,'請重新提交刪除或復原操作。');return {patient:adminPerson(p),alreadyApplied:true};}
+      need(version===(payload.previousVersion||null),'個案狀態已更新，請重新整理名冊。');
+      need(!!p.deletedAt!==payload.deleted,'個案狀態已更新，請重新整理名冊。');
+      const change={id:Utilities.getUuid(),requestId,fingerprint,deleted:payload.deleted,createdAt:new Date().toISOString(),actor:identity.subject};
+      p.stateChanges=[...history,change];p.deletedAt=payload.deleted?change.createdAt:null;
+      // Keep original active state, LINE binding and evidence for exact restore.
+      write('Patients',p,p._row);audit(identity.subject,payload.deleted?'patient.delete':'patient.restore',p.id,{changeId:change.id});
+      return {patient:adminPerson(p)};
+    });
+  }
+  if (action === 'admin.recordStatus') {
+    admin(identity);need(typeof payload.deleted==='boolean','請確認刪除或復原操作。');
+    const requestId=cleanText(payload.requestId,16,64,'操作編號');
+    return locked(()=>{
+      const all=read('Records'),source=all.find(r=>r.id===payload.id);need(source,'找不到紀錄。');
+      const p=read('Patients').find(p=>p.id===source.patientId);need(p&&!p.deletedAt,'請先復原個案，再管理紀錄。');
+      const records=all.filter(r=>r.patientId===p.id);
+      const retry=records.find(r=>r.adminMutation?.requestId===requestId);
+      if(retry){need(retry.adminMutation.sourceId===payload.id&&retry.adminMutation.deleted===payload.deleted,'請重新提交刪除或復原操作。');return {records:records.map(publicRecord),alreadyApplied:true};}
+      const current=latest(records,true).find(r=>r.date===source.date&&r.kind===source.kind);
+      need(current?.id===source.id&&!!current.deletedAt!==payload.deleted,'紀錄已有新版或狀態已變更，請重新載入紀錄。');
+      const now=new Date().toISOString();
+      const revision={...current,id:Utilities.getUuid(),createdAt:now,previousId:current.id,deletedAt:payload.deleted?now:null,adminMutation:{requestId,sourceId:source.id,deleted:payload.deleted,actor:identity.subject}};
+      delete revision._row;delete revision.requestId;delete revision.fingerprint;
+      write('Records',revision);audit(identity.subject,payload.deleted?'record.delete':'record.restore',revision.id,{patientId:p.id,previousId:source.id});
+      return {records:[...records,revision].map(publicRecord)};
+    });
+  }
   if (action === 'admin.activityGoal') {
     admin(identity);
     const requestId=cleanText(payload.requestId,16,64,'操作編號');
     need(payload.steps===null||(typeof payload.steps==='number'&&Number.isInteger(payload.steps)&&payload.steps>0&&payload.steps<=100000),'請填寫 1 至 100,000 的整數步數，或選擇暫停目標。');
     return locked(()=> {
-      const p=read('Patients').find(p=>p.id===payload.patientId);need(p&&p.active,'找不到可設定的個案。');
+      const p=read('Patients').find(p=>p.id===payload.patientId);need(p&&p.active&&!p.deletedAt,'找不到可設定的個案。');
       const history=p.activityGoals||[],previous=history[history.length-1]||null;
       const fingerprint=hash(JSON.stringify([payload.steps,payload.previousId||null]));
       const retry=history.find(g=>g.requestId===requestId);
@@ -165,8 +210,8 @@ export function dispatch(action, payload, identity) {
     return {records:read('Records').filter(r=>r.patientId===p.id).map(publicRecord)};
   }
   if (action === 'image') {
-    const r=read('Records').find(r=>r.id===payload.id);need(r && r.imageFileId,'找不到照片。');
-    if(identity.role!=='admin') need(r.patientId===person(identity).id,'找不到照片。');
+    const all=read('Records'),r=all.find(r=>r.id===payload.id);need(r && r.imageFileId,'找不到照片。');
+    if(identity.role!=='admin') {const p=person(identity);need(r.patientId===p.id&&visibleRecordIds(all.filter(r=>r.patientId===p.id)).has(r.id),'找不到照片。');}
     privateFolder();
     const file=DriveApp.getFileById(r.imageFileId);
     need(file.getSize()<=800000,'照片大小異常。');
@@ -179,7 +224,7 @@ export function dispatch(action, payload, identity) {
     write('Patients',current,current._row);audit(identity.subject,'profile.update',current.id);
     return {profile:publicPerson(current)};
   });
-  if (action === 'leaderboard') return {rows:leaderboard(read('Patients'),read('Records'),today.slice(0,7))};
+  if (action === 'leaderboard') {if(identity.role!=='admin')person(identity);return {rows:leaderboard(read('Patients'),read('Records'),today.slice(0,7))};}
   if (action === 'save') {
     const value=validateRecord(payload.record,today), requestId=cleanText(payload.requestId,16,64,'操作編號');
     const image = payload.image ? validateImage(payload.image) : null;
@@ -188,7 +233,7 @@ export function dispatch(action, payload, identity) {
       const current=person(identity), all=read('Records').filter(r=>r.patientId===current.id);
       const fingerprint=hash(JSON.stringify(value)+String(payload.image||'')+String(payload.previousId||''));
       const previousRequest=all.find(r=>r.requestId===requestId);
-      if(previousRequest){need(previousRequest.fingerprint===fingerprint,'請重新提交更新後的紀錄。');return {record:publicRecord(previousRequest)};}
+      if(previousRequest){need(previousRequest.fingerprint===fingerprint,'請重新提交更新後的紀錄。');need(latest(all).some(r=>r.id===previousRequest.id),'紀錄已更新或刪除，請重新整理後再確認。');return {record:publicRecord(previousRequest)};}
       const dayRecord=latest(all).find(r=>r.date===value.date&&r.kind===value.kind);
       need((dayRecord?.id||null)===(payload.previousId||null),'紀錄已更新，請重新整理後再修改。');
       let imageFileId=dayRecord?.imageFileId||null;
@@ -206,15 +251,15 @@ function requestAllowed(action, payload, identity) {
   if (identity.role === 'admin' || props().getProperty('ACCEPT_PATIENTS') === 'true') return true;
   if (identity.role !== 'patient' || props().getProperty('ACCEPT_TEST_PATIENTS') !== 'true') return false;
   const people = read('Patients'), current = people.find(p=>p.subject===identity.subject);
-  if (current) return current.active && current.isTest === true;
+  if (current) return current.active && !current.deletedAt && current.isTest === true;
   // An authenticated LINE user may reach the invitation screen, but no data is disclosed.
   if (action === 'bootstrap') return true;
   if (action !== 'bind' || typeof payload.code !== 'string') return false;
   const code = payload.code.replace(/[ -]/g,'').toUpperCase();
   const invited = people.find(p=>p.inviteHash===hash(code));
-  return !!(invited && invited.active && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
+  return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:2,capabilities:['activityGoals'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:3,capabilities:['activityGoals','adminTrash'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

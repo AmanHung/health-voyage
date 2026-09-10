@@ -8,7 +8,7 @@ import {RadioGroup,RadioGroupItem} from '@/components/ui/radio-group';
 import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {DropdownMenu,DropdownMenuTrigger,DropdownMenuContent,DropdownMenuItem} from '@/components/ui/dropdown-menu';
 import {TaskCalendar} from '@/components/task-calendar';
-import {api,type Auth,type Bootstrap,type Profile,type RecordItem} from './api';
+import {api,type Auth,type Bootstrap,type Profile,type AdminPatient,type RecordItem} from './api';
 import {config,configured} from './config';
 import {lineAuth,googleButton,signOut} from './auth';
 import {prepareImage,type PreparedImage} from './images';
@@ -22,7 +22,8 @@ import '@/app/globals.css';
 import './style.css';
 import './voyage.css';
 import './meal-flow.css';
-import {ActivityGoalCard,AdminActivityGoal} from './activity-goal';
+import {ActivityGoalCard} from './activity-goal';
+import {AdminDirectory} from './admin-directory';
 import './activity-goal.css';
 
 type View=PatientView|'admin';
@@ -135,17 +136,13 @@ function RecordForm({auth,kind,today,record,onSaved}:{auth:Auth;kind:RecordItem[
     </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{reading&&<Button type="button" variant="outline" onClick={manualSteps}>不用等待，手動填寫步數</Button>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
 function Admin({auth,today,onError,onPhoto}:{auth:Auth;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
-  const [patients,setPatients]=useState<(Profile&{name:string;bound:boolean})[]>([]),[name,setName]=useState('測試個案 001'),[isTest,setTest]=useState(true),[busy,setBusy]=useState(false),[code,setCode]=useState(''),[records,setRecords]=useState<RecordItem[]>([]),[selected,setSelected]=useState('');
-  const [goalPatientId,setGoalPatientId]=useState('');
-  const goalPatient=patients.find(p=>p.id===goalPatientId);
+  const [patients,setPatients]=useState<AdminPatient[]>([]),[name,setName]=useState('測試個案 001'),[isTest,setTest]=useState(true),[busy,setBusy]=useState(false),[code,setCode]=useState('');
   const requestId=useRef(crypto.randomUUID());
   async function load(){const r=await api<{patients:typeof patients}>(auth,'admin.patients');setPatients(r.patients);}
   useEffect(()=>{load().catch(e=>onError(message(e)));},[]);
   async function create(e:FormEvent){e.preventDefault();setBusy(true);onError('');try{const r=await api<{code?:string}>(auth,'admin.createPatient',{name,isTest,requestId:requestId.current});setCode(r.code||'已建立，邀請碼只於首次建立時顯示。');requestId.current=crypto.randomUUID();await load();}catch(e){onError(message(e));}finally{setBusy(false);}}
   return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：obm0304@gmail.com</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><TestTube2/>開啟測試個案</a><p className="prod-login-note">請使用已綁定測試個案的 LINE 帳號。</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><label className="prod-choice"><Checkbox checked={isTest} onCheckedChange={v=>{setTest(!!v);requestId.current=crypto.randomUUID();}}/>測試個案，不列入排行榜</label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
-    <section className="surface"><div className="prod-actions"><h2>個案名冊</h2><Button variant="ghost" onClick={()=>{setGoalPatientId('');load().catch(e=>onError(message(e)));}}>重新整理名冊</Button></div><div className="prod-records">{patients.map(p=><article key={p.id}><h3>{p.name}{p.isTest?'（測試）':''}</h3><p>{p.bound?'已綁定':'尚未綁定'}・{p.nickname}</p><Button variant="outline" onClick={async()=>{onError('');try{const r=await api<{records:RecordItem[]}>(auth,'admin.records',{patientId:p.id});setSelected(p.name);setRecords(r.records);}catch(e){onError(message(e));}}}>查看紀錄</Button> <Button variant="outline" disabled={!p.active} onClick={()=>setGoalPatientId(p.id)}>設定活動目標</Button></article>)}</div></section>
-    {goalPatient&&<AdminActivityGoal key={goalPatient.id} auth={auth} patient={goalPatient} today={today} onSaved={profile=>setPatients(current=>current.map(p=>p.id===profile.id?{...p,...profile}:p))}/>}
-    {selected&&<section className="surface"><h2>{selected}的紀錄</h2><RecordList records={records} onPhoto={onPhoto}/></section>}
+    <AdminDirectory auth={auth} today={today} patients={patients} onPatientChanged={patient=>setPatients(current=>current.map(p=>p.id===patient.id?patient:p))} onReload={load} onPhoto={onPhoto}/>
   </>;
 }
 const root=document.getElementById('root');if(root)createRoot(root).render(<App/>);
