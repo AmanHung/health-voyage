@@ -20,7 +20,7 @@ test('meal correction can replace a photo and restarts confirmation',()=>{
   assert.match(source,/e\.currentTarget\.value=''/);
   assert.match(source,/setMeal\(emptyMealInterview\(\)\);setMealReady\(false\)/);
   assert.match(source,/key=\{prepared\?\.preview\|\|record\?\.id\|\|'new-meal'\}/);
-  assert.match(source,/開啟測試個案/);
+  assert.match(source,/開啟個案網站/);
 });
 
 test('a stalled phone image decoder times out and frees late image resources',async(t)=>{
