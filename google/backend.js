@@ -1,10 +1,12 @@
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
 import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, feedback } from './domain.js';
+import {medicationService} from './medication-service.js';
 const ADMIN = 'obm0304@gmail.com';
 const SCHEMAS = {
   Patients: ['個案編號', '建立時間', '姓名', '暱稱', '測試個案', '資料'],
   Records: ['紀錄編號', '個案編號', '日期', '種類', '儲存時間', '資料'],
   Audit: ['時間', '操作者', '操作', '目標', '資料'],
+  MedicationPlans: ['版本編號','個案編號','生效時間','建立時間','資料'],
 };
 const props = () => PropertiesService.getScriptProperties();
 const hash = s => Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s, Utilities.Charset.UTF_8).map(b => ('0' + ((b + 256) % 256).toString(16)).slice(-2)).join('');
@@ -15,19 +17,25 @@ function sheet(name) {
   const s = SpreadsheetApp.openById(id).getSheetByName(name);
   need(s, '資料表尚未準備完成。'); return s;
 }
-function read(name) {
-  const s = sheet(name); if (s.getLastRow() < 2) return [];
+function read(name, patientId) {
+  const s = name==='MedicationPlans'?SpreadsheetApp.openById(config('RECORD_SHEET_ID')).getSheetByName(name):sheet(name); if (!s || s.getLastRow() < 2) return [];
   // This prototype is deliberately bounded; fail instead of silently dropping records.
   need(s.getLastRow() <= 25000, '資料量已達試用上限，請管理員安排升級。');
+  if(patientId){
+    const ids=s.getRange(2,2,s.getLastRow()-1,1).getValues();
+    return ids.flatMap((r,i)=>r[0]===patientId?[{...JSON.parse(s.getRange(i+2,SCHEMAS[name].length,1,1).getValues()[0][0]),_row:i+2}]:[]);
+  }
   return s.getRange(2, SCHEMAS[name].length, s.getLastRow()-1, 1).getValues().map((r, i) => ({ ...JSON.parse(r[0]), _row: i + 2 }));
 }
 function columns(name, row) {
   const data = {...row}; delete data._row;
   if (name === 'Patients') return [row.id, row.createdAt, row.name, row.nickname, row.isTest ? '是' : '否', JSON.stringify(data)];
+  if (name === 'MedicationPlans') return [row.id,row.patientId,row.effectiveFrom,row.createdAt,JSON.stringify(data)];
   if (name === 'Records') return [row.id, row.patientId, row.date, row.kind, row.createdAt, JSON.stringify(data)];
   return [row.createdAt, row.actor, row.action, row.target, JSON.stringify(data)];
 }
 function write(name, row, number) {
+  if(name==='MedicationPlans'){const book=SpreadsheetApp.openById(config('RECORD_SHEET_ID'));if(!book.getSheetByName(name)){const created=book.insertSheet(name);created.getRange(1,1,1,SCHEMAS[name].length).setValues([SCHEMAS[name]]);created.setFrozenRows(1);}}
   const s = sheet(name), cells = columns(name, row).map(v => /^[=+@\-\t\r]/.test(String(v)) ? "'" + v : v);
   s.getRange(number || s.getLastRow()+1, 1, 1, cells.length).setNumberFormat('@').setValues([cells]);
 }
@@ -57,10 +65,11 @@ export function authenticate(auth) {
     // Only a server-to-Google HTTPS call contains the token. Never put it in browser URLs or logs.
     claim = fetchJson('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(auth.token));
     need(['accounts.google.com', 'https://accounts.google.com'].includes(claim.iss) && claim.aud === clientId && [true, 'true'].includes(claim.email_verified), 'Google 登入驗證失敗。');
-    need(String(claim.email).toLowerCase() === ADMIN, '此帳號沒有管理員權限。');
+    const email=String(claim.email).toLowerCase();
+    need(email===ADMIN||read('Patients').some(p=>p.active&&!p.deletedAt&&p.pharmacists?.includes(email)), '此帳號沒有管理員或藥師權限。');
   }
   need(typeof claim.sub === 'string' && claim.sub.length > 0 && Number(claim.exp) > Date.now()/1000, '登入已過期，請重新登入。');
-  const identity = { provider: auth.provider, subject: auth.provider + ':' + claim.sub, role: auth.provider === 'google' ? 'admin' : 'patient', exp: Number(claim.exp) };
+  const identity = { provider: auth.provider, subject: auth.provider + ':' + claim.sub, role: auth.provider === 'google' ? (String(claim.email).toLowerCase()===ADMIN?'admin':'pharmacist') : 'patient', email:auth.provider==='google'?String(claim.email).toLowerCase():undefined, exp: Number(claim.exp) };
   cache.put(key, JSON.stringify(identity), Math.max(1, Math.min(60, Math.floor(identity.exp - Date.now()/1000))));
   return identity;
 }
@@ -105,15 +114,24 @@ export function validateImage(data) {
   need(width>0 && height>0 && width<=1920 && height<=1920 && width*height<=3686400, '圖片解析度超過限制。');
   return {bytes, width, height};
 }
+const medication=medicationService({read,write,need,cleanText,locked,hash,audit,publicRecord,latest,person});
 export function dispatch(action, payload, identity) {
   checkRate(identity.subject);
   const today = dayKey();
+  if(identity.role==='pharmacist'){
+    const assigned=read('Patients').filter(p=>p.active&&!p.deletedAt&&p.pharmacists?.includes(identity.email));
+    need(assigned.length,'藥師權限已移除，請聯絡管理員。');
+    if(action==='bootstrap')return {role:'pharmacist',today,patients:assigned.map(p=>({id:p.id,name:p.name}))};
+    need(['medication.read','medication.publish'].includes(action),'沒有此操作權限。');
+  }
+  if(action.startsWith('medication.')||action==='admin.medicationStaff')return medication.dispatch(action,payload,identity,today);
   if (action === 'bootstrap') {
     if (identity.role === 'admin') return {role:'admin', email:ADMIN, today};
     const p = read('Patients').find(x=>x.subject===identity.subject);
     if (!p) return {role:'patient', bound:false, today};
     need(p.active && !p.deletedAt, '帳號已停用，請聯絡照護團隊。');
-    return {role:'patient',bound:true,today,profile:publicPerson(p),records:latest(read('Records').filter(r=>r.patientId===p.id)).map(publicRecord)};
+    const plans=medication.histories(p.id);
+    return {role:'patient',bound:true,today,profile:publicPerson(p),records:latest(read('Records',p.id)).map(r=>medication.decorate(r,plans))};
   }
   if (action === 'admin.createPatient') {
     admin(identity);
@@ -234,6 +252,7 @@ export function dispatch(action, payload, identity) {
       const fingerprint=hash(JSON.stringify(value)+String(payload.image||'')+String(payload.previousId||''));
       const previousRequest=all.find(r=>r.requestId===requestId);
       if(previousRequest){need(previousRequest.fingerprint===fingerprint,'請重新提交更新後的紀錄。');need(latest(all).some(r=>r.id===previousRequest.id),'紀錄已更新或刪除，請重新整理後再確認。');return {record:publicRecord(previousRequest)};}
+      if(value.kind==='medicine')need(!medication.histories(current.id).some(p=>p.effectiveFrom.slice(0,10)<=value.date),'請改用逐項用藥回報，舊版每日回報不會覆蓋清單。');
       const dayRecord=latest(all).find(r=>r.date===value.date&&r.kind===value.kind);
       need((dayRecord?.id||null)===(payload.previousId||null),'紀錄已更新，請重新整理後再修改。');
       let imageFileId=dayRecord?.imageFileId||null;
@@ -248,7 +267,7 @@ export function dispatch(action, payload, identity) {
   throw new Error('不支援此操作。');
 }
 function requestAllowed(action, payload, identity) {
-  if (identity.role === 'admin' || props().getProperty('ACCEPT_PATIENTS') === 'true') return true;
+  if (identity.role === 'admin' || identity.role==='pharmacist' || props().getProperty('ACCEPT_PATIENTS') === 'true') return true;
   if (identity.role !== 'patient' || props().getProperty('ACCEPT_TEST_PATIENTS') !== 'true') return false;
   const people = read('Patients'), current = people.find(p=>p.subject===identity.subject);
   if (current) return current.active && !current.deletedAt && current.isTest === true;
@@ -259,7 +278,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:3,capabilities:['activityGoals','adminTrash'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:4,capabilities:['activityGoals','adminTrash','medicationPlans'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

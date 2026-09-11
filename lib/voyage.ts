@@ -1,5 +1,5 @@
 // Participation rewards only: never infer adherence or clinical improvement.
-export type VoyageRecord = {date:string;kind:string;createdAt?:string};
+export type VoyageRecord = {date:string;kind:string;createdAt?:string;medicationComplete?:boolean};
 const kinds = ['exercise','meal','medicine'];
 const DAY = 86400000;
 function validDay(date:string) {
@@ -38,7 +38,7 @@ export function voyageProgress(records:VoyageRecord[],today:string) {
     {id:'month',name:'珍藏時光',description:'累積三十個紀錄日',value:dates.length,goal:30},
   ].map(b=>({...b,earned:b.value>=b.goal}));
   return {today,dates,latest,week,weeklyDays,weeklyGoal:5,totalDays:dates.length,
-    todayCount:latest.filter(r=>r.date===today).length,badges,
+    todayCount:latest.filter(r=>r.date===today&&r.medicationComplete!==false).length,badges,
     nextPort:PORTS.find(p=>p.days>dates.length) || null,
     currentPort:[...PORTS].reverse().find(p=>p.days<=dates.length) || null};
 }

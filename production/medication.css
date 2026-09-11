@@ -1,0 +1,301 @@
+.medication {
+  color: #193f4b;
+  font-size: 18px;
+  line-height: 1.6;
+}
+.medication h2 {
+  font-size: 25px;
+  margin: 0;
+}
+.medication h3 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.medication p {
+  margin: 6px 0 14px;
+}
+.med-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 12px 0 20px;
+}
+.med-toolbar label {
+  flex: 1;
+  min-width: 160px;
+}
+.medication label {
+  display: block;
+  font-weight: 600;
+  margin: 10px 0;
+}
+.medication input,
+.medication select,
+.medication textarea {
+  font-size: 18px;
+  min-height: 46px;
+}
+.medication select,
+.medication textarea {
+  width: 100%;
+  border: 1px solid #bacdd2;
+  border-radius: 10px;
+  padding: 9px;
+  background: white;
+}
+.medication button {
+  min-height: 46px;
+  white-space: normal;
+}
+.med-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #e3f4ee;
+  border-radius: 18px;
+  padding: 18px;
+  margin: 18px 0;
+}
+.med-progress > svg {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+}
+.med-progress p {
+  font-size: 16px;
+  margin: 2px 0;
+}
+.med-period {
+  margin: 28px 0;
+}
+.med-period h2 {
+  border-left: 5px solid #1d8a77;
+  padding-left: 12px;
+}
+.med-dose {
+  margin: 14px 0;
+  padding: 18px;
+  background: white;
+  border: 1px solid #cddfe3;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px #143a4510;
+}
+.med-dose-info {
+  display: grid;
+  grid-template-columns: 115px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.med-photo {
+  width: 115px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #e0eaed;
+  background: #f7fafb;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.med-photo img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  background: white;
+}
+.med-photo span {
+  font-size: 13px;
+  color: #476773;
+}
+.med-no-photo > svg {
+  width: 32px;
+  height: 32px;
+  color: #6d929a;
+}
+.med-amount {
+  display: block;
+  font-size: 21px;
+  color: #146857;
+  margin: 5px 0;
+}
+.med-note {
+  background: #f0f7fa;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+.med-status {
+  font-size: 17px;
+  color: #315e6b;
+}
+.med-status-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.med-save {
+  width: 100%;
+  margin-top: 14px;
+}
+.medication fieldset {
+  min-width: 0;
+}
+.medication fieldset:disabled {
+  opacity: 0.7;
+}
+.med-prn {
+  padding: 18px;
+  border: 1px solid #cddfe3;
+  border-radius: 14px;
+  margin: 20px 0;
+}
+.med-prn summary {
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 700;
+}
+.med-prn details {
+  padding: 12px 0;
+  border-bottom: 1px solid #dfebef;
+}
+.med-editor {
+  padding: 20px;
+  background: #f5f9fb;
+  border: 1px solid #c9dfe4;
+  border-radius: 18px;
+  margin: 20px 0;
+}
+.med-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 18px;
+}
+.med-editor-grid > .med-photo {
+  grid-row: span 2;
+}
+.med-slot-editor {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.med-slot-editor label {
+  flex: 1;
+  min-width: 130px;
+}
+.med-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.medication .med-days label,
+.medication .med-check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.med-days input,
+.med-check input {
+  width: 22px;
+  min-height: 22px;
+  height: 22px;
+  accent-color: #127a67;
+}
+.med-catalog {
+  border-radius: 18px;
+  padding: 18px;
+  background: #eaf5ef;
+}
+.med-results {
+  display: grid;
+  gap: 8px;
+  max-height: 380px;
+  overflow: auto;
+  margin-bottom: 14px;
+}
+.med-results button {
+  text-align: left;
+  background: white;
+  border: 1px solid #bcd7cf;
+  border-radius: 12px;
+  padding: 12px;
+}
+.med-results span {
+  display: block;
+  font-size: 15px;
+}
+.med-plan-status {
+  margin: 18px 0;
+}
+.med-plan-status button {
+  margin-top: 12px;
+}
+.med-history {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.med-history > div {
+  border-left: 3px solid #92beb2;
+  padding: 8px 12px;
+  background: #f4f9f7;
+}
+.med-history span {
+  display: block;
+  font-size: 16px;
+}
+.med-review {
+  border-top: 1px solid #d8e4e8;
+  margin-top: 24px;
+  padding-top: 22px;
+}
+.med-patients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 520px) {
+  .med-dose {
+    padding: 14px;
+  }
+  .med-dose-info {
+    grid-template-columns: 85px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .med-photo {
+    width: 85px;
+    min-height: 90px;
+  }
+  .med-photo img {
+    height: 80px;
+  }
+  .medication h3 {
+    font-size: 20px;
+  }
+  .med-amount {
+    font-size: 20px;
+  }
+  .med-status-options button {
+    font-size: 16px;
+    padding: 8px 4px;
+  }
+  .med-status-options svg {
+    display: none;
+  }
+  .med-editor-grid {
+    grid-template-columns: 1fr;
+  }
+  .med-editor {
+    padding: 14px;
+  }
+  .med-editor-grid > .med-photo {
+    grid-row: auto;
+  }
+  .med-manager {
+    padding: 18px;
+  }
+}
