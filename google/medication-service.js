@@ -154,7 +154,12 @@ export function medicationService(h) {
           (all.at(-1)?.id || null) === (payload.previousId || null),
           '清單已由其他人更新，請重新載入。',
         );
-        const clean = validateMedicationPlan(payload.plan, taiwanMinute());
+        // The server decides the activation time, including requests from older clients.
+        const now = taiwanMinute();
+        const clean = validateMedicationPlan(
+          { ...payload.plan, effectiveFrom: now },
+          now,
+        );
         const plan = {
           ...clean,
           id: Utilities.getUuid(),

@@ -34,9 +34,9 @@ const item = (patch = {}) => ({
   ],
   ...patch,
 });
-function fixture() {
+function fixture(isTest = false) {
   const e = environment({ now: '2026-09-10T22:00:00Z' }),
-    p = e.patient('A', false),
+    p = e.patient('A', isTest),
     other = e.patient('B', false);
   return { e, p, other };
 }
@@ -115,7 +115,6 @@ test('plan validation rejects ambiguous schedules and unsafe codes without inven
     0.5,
   );
   for (const patch of [
-    { strength: '' },
     { slots: [{ time: '25:00', label: '早餐後', amount: 1 }] },
     { slots: [{ time: '08:00', label: '早餐後', amount: 0 }] },
     { days: [] },
@@ -480,4 +479,34 @@ test('a stale daily report cannot change quantity or restore deleted earlier rep
   assert.equal(saved.ok, true);
   assert.equal(saved.data.record.medicationDoses.length, 1);
   assert.equal(saved.data.record.previousId, null);
+});
+
+test('saved plan is immediately visible to its test patient with optional strength and server activation time', () => {
+  const { e, p, other } = fixture(true);
+  for (const suppliedTime of [
+    '2099-01-01T00:00',
+    '2000-01-01T00:00',
+    undefined,
+  ]) {
+    const prior = response(e, p).plans.at(-1)?.id || null;
+    const saved = publish(e, p, [item({ strength: '' })], suppliedTime, prior);
+    assert.equal(saved.ok, true, saved.error);
+    const patientView = response(e, p);
+    const plan = patientView.plans.at(-1);
+    assert.equal(plan.effectiveFrom, patientView.now);
+    assert.equal(planAt(patientView.plans, patientView.now).id, plan.id);
+    assert.equal(plan.items[0].strength, '');
+    assert.equal(scheduledDoses(patientView.plans, day).length, 2);
+    assert.equal(response(e, other).plans.length, 0);
+  }
+});
+
+test('late initial publication remains readable even when all of today’s doses have passed', () => {
+  const { e, p } = fixture();
+  e.setNow('2026-09-11T12:00:00Z');
+  assert.equal(publish(e, p).ok, true);
+  const view = response(e, p);
+  assert.equal(view.plans.length, 1);
+  assert.equal(scheduledDoses(view.plans, day).length, 0);
+  assert.equal(scheduledDoses(view.plans, '2026-09-12').length, 2);
 });

@@ -94,8 +94,8 @@ export function validateMedicationPlan(input: unknown, now: string) {
       medicationDay(p.effectiveFrom.slice(0, 10)) &&
       p.effectiveFrom[10] === 'T' &&
       medicationTime(p.effectiveFrom.slice(11)) &&
-      p.effectiveFrom > now,
-    '生效時間須晚於現在，不能回溯修改。',
+      p.effectiveFrom >= now,
+    '生效時間不能回溯修改。',
   );
   check(
     Array.isArray(p.items) && p.items.length <= 20,
@@ -163,7 +163,7 @@ export function validateMedicationPlan(input: unknown, now: string) {
       id,
       code,
       name: text(m.name, 100, true),
-      strength: text(m.strength, 60, true),
+      strength: text(m.strength ?? '', 60),
       unit: text(m.unit, 12, true),
       route: text(m.route, 30, true),
       note: text(m.note, 160),

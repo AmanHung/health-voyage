@@ -346,6 +346,16 @@ export function MedicationPatient({
           {notice}
         </p>
       )}
+      {!loading && data && data.plans.length > 0 && (
+        <details className="med-prn" open={doses.length === 0}>
+          <summary>已收到藥師用藥清單</summary>
+          <p className="med-note">
+            {data.plans.at(-1)!.effectiveFrom.replace('T', ' ')}{' '}
+            起生效。依開始日期、使用星期與服用時段顯示回報卡片。
+          </p>
+          <PlanPreview items={data.plans.at(-1)!.items} />
+        </details>
+      )}
       {loading ? (
         <p role="status">正在載入您的用藥清單…</p>
       ) : data && !planned ? (
@@ -372,7 +382,7 @@ export function MedicationPatient({
             )}
             {doses.length === 0 && (
               <p>
-                這天沒有排定固定用藥。需要時使用的藥品列於下方。
+                這天沒有生效後的固定服用時段。新清單不會回填存檔前已過的時段；請查看下方清單確認後續服法。
                 <Button
                   className="med-save"
                   disabled={busy || !!data.record?.medicationNoScheduled}
@@ -478,7 +488,6 @@ export function MedicationManager({
 }) {
   const [data, setData] = useState<MedicationView | null>(null),
     [items, setItems] = useState<MedicationItem[]>([]),
-    [effective, setEffective] = useState(''),
     [editing, setEditing] = useState(false),
     [preview, setPreview] = useState(false),
     [busy, setBusy] = useState(false),
@@ -544,11 +553,6 @@ export function MedicationManager({
   function edit() {
     if (!data) return;
     setItems(structuredClone(data.plans.at(-1)?.items || []));
-    setEffective(
-      taiwanMinute(
-        new Date(Date.parse(currentMinute() + '+08:00') + 5 * 60000),
-      ),
-    );
     setEditing(true);
     setPreview(false);
     setNotice('');
@@ -671,7 +675,7 @@ export function MedicationManager({
                 e.preventDefault();
                 try {
                   validateMedicationPlan(
-                    { effectiveFrom: effective, items },
+                    { effectiveFrom: currentMinute(), items },
                     currentMinute(),
                   );
                   setPreview(true);
@@ -775,18 +779,6 @@ export function MedicationManager({
                               maxLength={100}
                               onChange={(e) =>
                                 change(m.id, { name: e.target.value })
-                              }
-                            />
-                          </label>
-                          <label>
-                            規格與劑型
-                            <Input
-                              required
-                              placeholder="依處方核對，例如 5 mg 錠劑"
-                              value={m.strength}
-                              maxLength={60}
-                              onChange={(e) =>
-                                change(m.id, { strength: e.target.value })
                               }
                             />
                           </label>
@@ -989,18 +981,8 @@ export function MedicationManager({
                         </Button>
                       </article>
                     ))}
-                    <label>
-                      整份清單生效時間（臺灣時間）
-                      <Input
-                        type="datetime-local"
-                        required
-                        value={effective}
-                        min={data.now}
-                        onChange={(e) => setEffective(e.target.value)}
-                      />
-                    </label>
                     <p className="med-note">
-                      請依處方確認規格、用量與服法。發布後，從生效時間起取代先前安排，包含尚未生效的變更；已回報的過去紀錄保留。
+                      請依處方確認藥品、用量與服法。確認存檔後立即生效；過去的服用時段與回報紀錄保留。
                     </p>
                     <Button type="submit">預覽個案用藥卡</Button>
                   </>
@@ -1008,7 +990,7 @@ export function MedicationManager({
                 {preview && (
                   <>
                     <p className="med-note">
-                      {effective.replace('T', ' ')} 起生效，共{' '}
+                      確認存檔後立即生效，共{' '}
                       {items.filter((m) => m.active).length} 項使用中藥品。
                       {!items.some((m) => m.active) &&
                         '此清單將停止所有固定用藥安排。'}
@@ -1028,12 +1010,12 @@ export function MedicationManager({
                         disabled={busy}
                         onClick={() =>
                           void mutate('medication.publish', {
-                            plan: { effectiveFrom: effective, items },
+                            plan: { items },
                             previousId: data.plans.at(-1)?.id || null,
                           })
                         }
                       >
-                        {busy ? '發布中…' : '已核對處方，確認發布'}
+                        {busy ? '存檔中…' : '已核對處方，確認存檔'}
                       </Button>
                     </div>
                   </>
