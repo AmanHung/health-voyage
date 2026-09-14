@@ -35,6 +35,7 @@ export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export function parseExerciseText(raw: string): Metrics {
   const text = raw
     .normalize('NFKC')
+    .replace(/(\d)[ \t]*,[ \t]*(?=\d)/g, '$1,')
     .replace(/(?<=[\u3400-\u9fff])[ \t]+(?=[\u3400-\u9fff])/g, '');
   const lines = text
     .split(/\r?\n/)
@@ -65,7 +66,12 @@ export function parseExerciseText(raw: string): Metrics {
     /步\s*[/／]\s*天|steps?\s*per\s*day/i.test(line)
       ? []
       : stepPatterns)
-      for (const match of line.matchAll(pattern)) {
+      for (const match of line
+        .replace(
+          /\d{1,4}\s*[/／:：.\-]\s*\d{1,2}(?:\s*[/／:：.\-]\s*\d{1,4})?/g,
+          ' 日期時間 ',
+        )
+        .matchAll(pattern)) {
         const value = Number(match[1].replaceAll(',', ''));
         if (Number.isInteger(value) && value >= 0 && value <= 100000)
           steps.add(value);
@@ -121,14 +127,119 @@ export function parseExerciseText(raw: string): Metrics {
   };
 }
 
+const stepLabel = /步\s*[數数]|\bsteps?\b|step\s*count/i;
+const unrelated =
+  /目標|目标|平均|每週|每周|本週|本周|本月|重點|趨勢|goal|target|average|weekly|monthly|卡路里|熱量|距離|公里|kcal|km|calories|distance/i;
+const dateOrTime = /\d\s*[/／:：.\-]\s*\d|[年月日%％]|\b(?:am|pm)\b/i;
+function normalizeStepToken(raw: string) {
+  return raw.normalize('NFKC').trim().replace(/[ \t]/g, '');
+}
+function stepValue(raw: string): number | null {
+  const token = normalizeStepToken(raw);
+  if (!/^(?:\d{1,3}(?:,\d{3})+|\d{1,6})$/.test(token)) return null;
+  const value = Number(token.replaceAll(',', ''));
+  return value <= 100000 ? value : null;
+}
+function labelledStepValue(raw: string): number | null {
+  return stepValue(raw.replace(stepLabel, '').replace(/^\s*[:：]\s*/, ''));
+}
+// Both passes use full-image coordinates. Text evidence vetoes numeric OCR at
+// dates/units even when the numeric pass drops or misreads the punctuation.
+function overlap(a: OcrLayout['lines'][number], b: OcrLayout['lines'][number]) {
+  const x = Math.max(
+    0,
+    Math.min(a.bbox.x1, b.bbox.x1) - Math.max(a.bbox.x0, b.bbox.x0),
+  );
+  const y = Math.max(
+    0,
+    Math.min(a.bbox.y1, b.bbox.y1) - Math.max(a.bbox.y0, b.bbox.y0),
+  );
+  return (x * y) / ((a.bbox.x1 - a.bbox.x0) * (a.bbox.y1 - a.bbox.y0)) > 0.35;
+}
+export function nearestStepNumber(
+  layout: OcrLayout,
+  evidence: OcrLayout = layout,
+): { anchored: boolean; steps: number | null } {
+  const labels = evidence.lines.filter(
+    (l) =>
+      stepLabel.test(l.text) &&
+      !unrelated.test(l.text) &&
+      !evidence.lines.some(
+        (other) =>
+          other !== l && unrelated.test(other.text) && overlap(l, other),
+      ),
+  );
+  if (!labels.length) return { anchored: false, steps: null };
+  const candidates = layout.lines
+    .flatMap((line) => {
+      const value = labelledStepValue(line.text);
+      // Prefer the complete line over fragments split around a thousands comma.
+      if (
+        layout.lines.some(
+          (parent) =>
+            parent !== line &&
+            parent.text !== line.text &&
+            labelledStepValue(parent.text) !== null &&
+            labelledStepValue(parent.text) !== value &&
+            parent.bbox.x0 <= line.bbox.x0 &&
+            parent.bbox.x1 >= line.bbox.x1 &&
+            parent.bbox.y0 <= line.bbox.y0 &&
+            parent.bbox.y1 >= line.bbox.y1,
+        )
+      )
+        return [];
+      if (value === null || line.confidence < 25 || dateOrTime.test(line.text))
+        return [];
+      if (
+        evidence.lines.some(
+          (l) =>
+            (dateOrTime.test(l.text) || unrelated.test(l.text)) &&
+            overlap(line, l),
+        )
+      )
+        return [];
+      const height = line.bbox.y1 - line.bbox.y0;
+      if (height < layout.width * 0.02 || line.bbox.y0 < layout.height * 0.04)
+        return [];
+      const distance = Math.min(
+        ...labels.map((label) => {
+          const dx = Math.max(
+            0,
+            label.bbox.x0 - line.bbox.x1,
+            line.bbox.x0 - label.bbox.x1,
+          );
+          const dy = Math.max(
+            0,
+            label.bbox.y0 - line.bbox.y1,
+            line.bbox.y0 - label.bbox.y1,
+          );
+          return Math.hypot(dx, dy) / layout.width;
+        }),
+      );
+      return distance <= 0.65 ? [{ value, distance }] : [];
+    })
+    .sort((a, b) => a.distance - b.distance);
+  if (!candidates.length) return { anchored: true, steps: null };
+  const best = candidates[0],
+    rival = candidates.find((c) => c.value !== best.value);
+  if (rival && rival.distance - best.distance < 0.035)
+    return { anchored: true, steps: null };
+  return { anchored: true, steps: best.value };
+}
+
 // Numeric OCR and text OCR are separate passes. The visual candidate must be
 // clearly larger than other numeric values, and the page must have a steps title.
 // This is still a candidate requiring confirmation, not proof of daily scope.
 export function parseExerciseRecognition(
   text: string,
   layout?: OcrLayout | null,
+  evidence?: OcrLayout | null,
 ): Metrics {
   const metrics = parseExerciseText(text);
+  if (layout) {
+    const nearby = nearestStepNumber(layout, evidence || layout);
+    if (nearby.anchored) return { ...metrics, steps: nearby.steps };
+  }
   if (metrics.steps !== null) return metrics;
   const headings = text
     .normalize('NFKC')
@@ -136,14 +247,24 @@ export function parseExerciseRecognition(
     .map((line) => line.replace(/[ \t]/g, ''));
   if (
     !layout ||
-    !headings.some((line) =>
-      /步數|步数|步行|steps?|stepcount|dailysteps/i.test(line),
+    !headings.some(
+      (line) =>
+        !unrelated.test(line) &&
+        /步數|步数|步行|steps?|stepcount|dailysteps/i.test(line),
     )
   )
     return metrics;
   const candidates = layout.lines
     .flatMap((line) => {
-      const token = line.text.trim().replace(/[ \t]/g, '');
+      if (
+        evidence?.lines.some(
+          (l) =>
+            (dateOrTime.test(l.text) || unrelated.test(l.text)) &&
+            overlap(line, l),
+        )
+      )
+        return [];
+      const token = normalizeStepToken(line.text);
       if (!/^(?:\d{1,3}(?:,\d{3})+|\d{1,6})$/.test(token)) return [];
       const value = Number(token.replaceAll(',', ''));
       const height = line.bbox.y1 - line.bbox.y0;

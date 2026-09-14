@@ -89,3 +89,102 @@ test('shows only the reported metric with no empty counterpart', () => {
   assert.equal(exerciseText({ steps: null, minutes: 30 }), '30 分鐘');
   assert.equal(exerciseText({ steps: 0, minutes: null }), '0 步');
 });
+
+test('nearest step label beats larger distant number and accepts spaced/fullwidth thousands separators', () => {
+  const l = (text, x, y, w = 100, h = 30) => ({
+    text,
+    confidence: 95,
+    bbox: { x0: x, y0: y, x1: x + w, y1: y + h },
+  });
+  const page = layout([
+    l('步數', 100, 200),
+    l('3,111', 100, 245),
+    l('9999', 100, 550, 150, 65),
+  ]);
+  assert.equal(parseExerciseRecognition('步數', page).steps, 3111);
+  assert.equal(parseExerciseText('步數：３，１１１').steps, 3111);
+  assert.equal(parseExerciseText('步數：3, 111').steps, 3111);
+});
+test('date separators never become partial step values and date boxes veto 5130 numeric misread', () => {
+  assert.equal(parseExerciseText('步數 5/30').steps, null);
+  assert.equal(parseExerciseText('5/30 步數').steps, null);
+  const label = line('步數', 30, 180),
+    date = line('5/30', 30, 225),
+    steps = line('3,111', 42, 300);
+  assert.equal(
+    parseExerciseRecognition('步數\n5/30', layout([label, date, steps])).steps,
+    3111,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '步數\n5/30',
+      layout([line('5130', 30, 225), steps]),
+      layout([label, date, steps]),
+    ).steps,
+    3111,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '步數\n5/30',
+      layout([line('5130', 30, 225)]),
+      layout([label, date]),
+    ).steps,
+    null,
+  );
+});
+test('nearby goals, time and percent are excluded; equal-distance values remain ambiguous', () => {
+  const label = line('步數', 30, 180),
+    goal = line('目標 8,000', 30, 225),
+    steps = line('3,111', 42, 300);
+  assert.equal(
+    parseExerciseRecognition(
+      '步數',
+      layout([line('8000', 30, 225), steps]),
+      layout([label, goal, steps]),
+    ).steps,
+    3111,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '步數',
+      layout([label, line('9:51', 30, 225), steps]),
+    ).steps,
+    3111,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '步數',
+      layout([label, line('150%', 30, 225), steps]),
+    ).steps,
+    3111,
+  );
+  assert.equal(
+    parseExerciseRecognition(
+      '步數',
+      layout([label, line('3000', 30, 230), line('4000', 30, 231)]),
+    ).steps,
+    null,
+  );
+});
+
+test('complete comma-separated line wins over OCR word fragments beside the label', () => {
+  const page = layout([
+    {
+      text: '步數 3, 111',
+      confidence: 95,
+      bbox: { x0: 10, y0: 220, x1: 350, y1: 260 },
+    },
+    {
+      text: '步數',
+      confidence: 95,
+      bbox: { x0: 10, y0: 220, x1: 80, y1: 260 },
+    },
+    { text: '3', confidence: 95, bbox: { x0: 100, y0: 220, x1: 120, y1: 260 } },
+    {
+      text: '111',
+      confidence: 95,
+      bbox: { x0: 160, y0: 220, x1: 240, y1: 260 },
+    },
+  ]);
+  assert.equal(parseExerciseRecognition('步數 3, 111', page).steps, 3111);
+});
