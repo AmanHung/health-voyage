@@ -71,7 +71,7 @@ function reportBody(view, dose, status = '已服用') {
   };
 }
 
-test('dose schedule respects weekdays, stop dates and within-day replacement without rewriting morning', () => {
+test('dose schedule uses the latest list for the day, independent of creation hour', () => {
   const a = { id: 'a', items: [item()], effectiveFrom: day + 'T07:00' },
     b = {
       id: 'b',
@@ -80,10 +80,7 @@ test('dose schedule respects weekdays, stop dates and within-day replacement wit
     };
   assert.deepEqual(
     scheduledDoses([a, b], day).map((d) => [d.planId, d.time, d.amount]),
-    [
-      ['a', '08:00', 0.5],
-      ['b', '18:00', 2],
-    ],
+    [['b', '18:00', 2]],
   );
   assert.equal(
     scheduledDoses([{ ...a, items: [item({ days: [0] })] }], day).length,
@@ -94,7 +91,7 @@ test('dose schedule respects weekdays, stop dates and within-day replacement wit
       .length,
     0,
   );
-  assert.equal(scheduledDoses([a, { ...b, items: [] }], day).length, 1);
+  assert.equal(scheduledDoses([a, { ...b, items: [] }], day).length, 0);
   // A newly published earlier change replaces previously scheduled future changes.
   const future = { ...b, id: 'future', effectiveFrom: '2026-09-15T00:00' },
     replacement = {
@@ -161,10 +158,6 @@ test('each dose report is independent, honest missed/question reports count, con
   let v = response(e, p),
     doses = scheduledDoses(v.plans, day),
     first = reportBody(v, doses[0], '未服用');
-  assert.equal(
-    e.call('medication.report', reportBody(v, doses[1]), p.identity).ok,
-    false,
-  );
   const saved = e.call('medication.report', first, p.identity);
   assert.equal(saved.ok, true, saved.error);
   v = saved.data;
@@ -244,7 +237,7 @@ test('within-day replacement keeps old dose snapshots and requires refreshed pla
   v = response(e, p);
   v = e.call(
     'medication.report',
-    reportBody(v, scheduledDoses(v.plans, day)[1]),
+    reportBody(v, scheduledDoses(v.plans, day)[0]),
     p.identity,
   ).data;
   assert.deepEqual(
@@ -501,12 +494,64 @@ test('saved plan is immediately visible to its test patient with optional streng
   }
 });
 
-test('late initial publication remains readable even when all of today’s doses have passed', () => {
+test('late initial publication permits reporting all first-day slots', () => {
   const { e, p } = fixture();
   e.setNow('2026-09-11T12:00:00Z');
   assert.equal(publish(e, p).ok, true);
   const view = response(e, p);
   assert.equal(view.plans.length, 1);
-  assert.equal(scheduledDoses(view.plans, day).length, 0);
+  assert.equal(scheduledDoses(view.plans, day).length, 2);
   assert.equal(scheduledDoses(view.plans, '2026-09-12').length, 2);
+});
+
+test('test patient can report earlier slots on first publication, but not upcoming times or future dates', () => {
+  const { e, p } = fixture(true);
+  e.setNow('2026-09-11T08:00:00Z'); // Taiwan 16:00
+  assert.equal(publish(e, p).ok, true);
+  let view = response(e, p);
+  const doses = scheduledDoses(view.plans, day);
+  assert.equal(doses.length, 2);
+  const morning = e.call(
+    'medication.report',
+    reportBody(view, doses[0]),
+    p.identity,
+  );
+  assert.equal(morning.ok, true, morning.error);
+  view = morning.data;
+  assert.equal(
+    e.call('medication.report', reportBody(view, doses[1]), p.identity).ok,
+    false,
+  );
+  e.setNow('2026-09-11T10:00:00Z'); // exactly Taiwan 18:00
+  const evening = e.call(
+    'medication.report',
+    reportBody(view, doses[1]),
+    p.identity,
+  );
+  assert.equal(evening.ok, true, evening.error);
+  assert.equal(evening.data.record.medicationComplete, true);
+  assert.equal(
+    e.call(
+      'medication.report',
+      { ...reportBody(evening.data, doses[0]), date: '2026-09-12' },
+      p.identity,
+    ).ok,
+    false,
+  );
+});
+
+test('revising a list after a dose time still allows that dose on the same day', () => {
+  const { e, p } = fixture(true);
+  assert.equal(publish(e, p, []).ok, true);
+  e.setNow('2026-09-11T08:00:00Z');
+  const previous = response(e, p).plans.at(-1).id;
+  assert.equal(publish(e, p, [item()], day + 'T16:00', previous).ok, true);
+  const view = response(e, p);
+  const doses = scheduledDoses(view.plans, day);
+  assert.equal(doses.length, 2);
+  assert.equal(
+    e.call('medication.report', reportBody(view, doses[0]), p.identity).ok,
+    true,
+  );
+  assert.equal(scheduledDoses(view.plans, '2026-09-10').length, 0);
 });

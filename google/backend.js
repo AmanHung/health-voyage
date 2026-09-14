@@ -50,12 +50,21 @@ function fetchJson(url, options = {}) {
   need(r.getResponseCode() === 200, '登入已失效，請重新登入。');
   return JSON.parse(r.getContentText());
 }
+function adminAccounts() {
+  const saved=props().getProperty('ADMIN_ACCOUNTS');
+  return saved ? JSON.parse(saved) : {emails:[ADMIN],version:'initial'};
+}
+function googleRole(email) {
+  if(adminAccounts().emails.includes(email))return 'admin';
+  need(read('Patients').some(p=>p.active&&!p.deletedAt&&p.pharmacists?.includes(email)), '此帳號沒有管理員或藥師權限。');
+  return 'pharmacist';
+}
 export function authenticate(auth) {
   need(auth && ['line', 'google'].includes(auth.provider) && typeof auth.token === 'string' && auth.token.length > 50 && auth.token.length < 12000, '請先登入。');
   const clientId = config(auth.provider === 'line' ? 'LINE_CHANNEL_ID' : 'GOOGLE_CLIENT_ID');
   const cache = CacheService.getScriptCache(), key = 'identity:' + hash(auth.provider + ':' + clientId + ':' + auth.token);
   const cached = cache.get(key);
-  if (cached) { const id = JSON.parse(cached); if (id.exp > Date.now()/1000) return id; }
+  if (cached) { const id = JSON.parse(cached); if (id.exp > Date.now()/1000) {if(id.provider==='google')id.role=googleRole(id.email);return id;} }
   let claim;
   if (auth.provider === 'line') {
     claim = fetchJson('https://api.line.me/oauth2/v2.1/verify', { method: 'post', payload: { id_token: auth.token, client_id: clientId } });
@@ -66,10 +75,10 @@ export function authenticate(auth) {
     claim = fetchJson('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(auth.token));
     need(['accounts.google.com', 'https://accounts.google.com'].includes(claim.iss) && claim.aud === clientId && [true, 'true'].includes(claim.email_verified), 'Google 登入驗證失敗。');
     const email=String(claim.email).toLowerCase();
-    need(email===ADMIN||read('Patients').some(p=>p.active&&!p.deletedAt&&p.pharmacists?.includes(email)), '此帳號沒有管理員或藥師權限。');
+    googleRole(email);
   }
   need(typeof claim.sub === 'string' && claim.sub.length > 0 && Number(claim.exp) > Date.now()/1000, '登入已過期，請重新登入。');
-  const identity = { provider: auth.provider, subject: auth.provider + ':' + claim.sub, role: auth.provider === 'google' ? (String(claim.email).toLowerCase()===ADMIN?'admin':'pharmacist') : 'patient', email:auth.provider==='google'?String(claim.email).toLowerCase():undefined, exp: Number(claim.exp) };
+  const identity = { provider: auth.provider, subject: auth.provider + ':' + claim.sub, role: auth.provider === 'google' ? googleRole(String(claim.email).toLowerCase()) : 'patient', email:auth.provider==='google'?String(claim.email).toLowerCase():undefined, exp: Number(claim.exp) };
   cache.put(key, JSON.stringify(identity), Math.max(1, Math.min(60, Math.floor(identity.exp - Date.now()/1000))));
   return identity;
 }
@@ -124,9 +133,35 @@ export function dispatch(action, payload, identity) {
     if(action==='bootstrap')return {role:'pharmacist',today,patients:assigned.map(p=>({id:p.id,name:p.name}))};
     need(['medication.read','medication.publish'].includes(action),'沒有此操作權限。');
   }
+  if(action==='admin.accounts') {
+    admin(identity);
+    const state=adminAccounts();
+    return {emails:state.emails,version:state.version};
+  }
+  if(action==='admin.accountChange') {
+    admin(identity);
+    const email=cleanText(payload.email,3,254,'Google 帳號').toLowerCase();
+    need(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),'請填寫有效的 Google 帳號 Email。');
+    need(['add','remove'].includes(payload.operation),'請確認管理員操作。');
+    const requestId=cleanText(payload.requestId,16,64,'操作編號');
+    return locked(()=>{
+      const state=adminAccounts();
+      need(state.emails.includes(identity.email),'管理員權限已移除。');
+      const fingerprint=hash(JSON.stringify([email,payload.operation,payload.version]));
+      if(state.requestId===requestId){need(state.fingerprint===fingerprint,'請重新提交修改。');return {emails:state.emails,version:state.version};}
+      need(state.version===payload.version,'管理員名單已更新，請重新載入。');
+      const emails=payload.operation==='add'?[...new Set([...state.emails,email])]:state.emails.filter(e=>e!==email);
+      need(emails.length>0,'至少須保留一位管理員。');
+      need(emails.length<=30,'管理員最多 30 位。');
+      const next={emails,version:Utilities.getUuid(),requestId,fingerprint};
+      audit(identity.subject,'admin.account.'+payload.operation,email);
+      props().setProperty('ADMIN_ACCOUNTS',JSON.stringify(next));
+      return {emails:next.emails,version:next.version};
+    });
+  }
   if(action.startsWith('medication.')||action==='admin.medicationStaff')return medication.dispatch(action,payload,identity,today);
   if (action === 'bootstrap') {
-    if (identity.role === 'admin') return {role:'admin', email:ADMIN, today};
+    if (identity.role === 'admin') return {role:'admin', email:identity.email, today};
     const p = read('Patients').find(x=>x.subject===identity.subject);
     if (!p) return {role:'patient', bound:false, today};
     need(p.active && !p.deletedAt, '帳號已停用，請聯絡照護團隊。');

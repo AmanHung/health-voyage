@@ -226,15 +226,17 @@ function dose(
     prn: m.prn,
   };
 }
+// Select the day's latest saved list; creation time never gates a dose's time.
+export function medicationPlanForDay(plans: MedicationPlan[], date: string) {
+  return planAt(plans, date + 'T23:59');
+}
 export function scheduledDoses(plans: MedicationPlan[], date: string) {
   const result: MedicationDose[] = [];
-  for (const p of plans)
+  const p = medicationPlanForDay(plans, date);
+  if (p)
     for (const m of p.items)
       if (applies(m, date) && !m.prn)
-        for (const s of m.slots) {
-          if (planAt(plans, date + 'T' + s.time)?.id === p.id)
-            result.push(dose(p, m, s));
-        }
+        for (const s of m.slots) result.push(dose(p, m, s));
   return result.sort(
     (a, b) => a.time.localeCompare(b.time) || a.name.localeCompare(b.name),
   );
@@ -245,7 +247,7 @@ export function prnDose(
   time: string,
   itemId: string,
 ) {
-  const p = planAt(plans, date + 'T' + time),
+  const p = medicationPlanForDay(plans, date),
     m = p?.items.find((m) => m.id === itemId && m.prn && applies(m, date));
   return p && m ? dose(p, m, { ...m.slots[0], time }) : undefined;
 }

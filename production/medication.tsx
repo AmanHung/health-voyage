@@ -15,6 +15,7 @@ import {
   drugImageUrl,
   taiwanMinute,
   planAt,
+  medicationPlanForDay,
   scheduledDoses,
   prnDose,
   medicationSummary,
@@ -304,7 +305,7 @@ export function MedicationPatient({
   const planned = data?.plans.some((p) => p.effectiveFrom.slice(0, 10) <= date),
     doses = data ? scheduledDoses(data.plans, date) : [],
     reports = data?.record?.medicationDoses || [];
-  const prnPlan = data ? planAt(data.plans, date + 'T' + prnTime) : undefined;
+  const prnPlan = data ? medicationPlanForDay(data.plans, date) : undefined;
   const prns =
     prnPlan?.items.filter(
       (m) => m.prn && prnDose(data!.plans, date, prnTime, m.id),
@@ -382,7 +383,7 @@ export function MedicationPatient({
             )}
             {doses.length === 0 && (
               <p>
-                這天沒有生效後的固定服用時段。新清單不會回填存檔前已過的時段；請查看下方清單確認後續服法。
+                這天沒有排定固定用藥，請查看清單確認使用日期與服法。
                 <Button
                   className="med-save"
                   disabled={busy || !!data.record?.medicationNoScheduled}
@@ -982,7 +983,7 @@ export function MedicationManager({
                       </article>
                     ))}
                     <p className="med-note">
-                      請依處方確認藥品、用量與服法。確認存檔後立即生效；過去的服用時段與回報紀錄保留。
+                      請依處方確認藥品、用量與服法。確認存檔後立即生效；當天依最新清單顯示服用時段，已回報紀錄保留。
                     </p>
                     <Button type="submit">預覽個案用藥卡</Button>
                   </>

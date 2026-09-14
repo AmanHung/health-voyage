@@ -13,6 +13,13 @@ export async function lineAuth(startLogin=false):Promise<Auth|null>{
   await script('https://static.line-scdn.net/liff/edge/2/sdk.js');
   if(!liffReady)liffReady=window.liff!.init({liffId:config.liffId}).catch(error=>{liffReady=null;throw error;});
   await liffReady;
+  // An explicit retry in a desktop/external browser must obtain a fresh token.
+  // LIFF may still report logged-in while its ID token has expired.
+  if(startLogin && !window.liff!.isInClient()){
+    if(window.liff!.isLoggedIn())window.liff!.logout();
+    window.liff!.login({redirectUri:location.origin+import.meta.env.BASE_URL});
+    return null;
+  }
   if(!window.liff!.isLoggedIn()){if(startLogin)window.liff!.login({redirectUri:location.origin+import.meta.env.BASE_URL});return null;}
   const token=window.liff!.getIDToken();if(!token)throw new Error('請允許 LINE 登入權限後再試。');
   return {provider:'line',token};

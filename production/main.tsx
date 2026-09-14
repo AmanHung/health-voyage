@@ -1,3 +1,4 @@
+import {AdminAccounts} from './admin-accounts';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft} from 'lucide-react';
@@ -64,7 +65,7 @@ function App(){
     <main className="prod-content">
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
       {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>服務準備完成後，即可開始使用。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
-      data.role==='admin'?<Admin auth={auth} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
+      data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
       {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
       {view==='journey'&&progress&&<><VoyageJourney progress={progress}/><section className="surface prod-rank"><h2><Trophy/>{Number(data.today.slice(5,7))} 月同行步數榜</h2>{rankError?<p role="status">{rankError}</p>:rows.length?<ol>{rows.map((row,i)=><li key={i}><span>{i+1}．{row.nickname}</span><strong>{row.steps.toLocaleString()} 步</strong></li>)}</ol>:<p>本月尚無步數紀錄。</p>}<p>排行榜以暱稱顯示。依自己的能力活動，不必追趕他人。</p></section></>}
@@ -135,13 +136,14 @@ function RecordForm({auth,kind,today,initialDate,record,onSaved}:{auth:Auth;kind
     {kind==='medicine'&&<Choice label="今天用藥情形" options={MEDS} value={status} onChange={setStatus}/>}
     </fieldset>{processing&&<p role="status">正在處理圖片…</p>}{ocrText&&<p role="status">{ocrText}</p>}{reading&&<Button type="button" variant="outline" onClick={manualSteps}>不用等待，手動填寫步數</Button>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing||(kind==='meal'&&!mealReady)||!mealInterviewComplete(meal)&&kind==='meal'}>{busy?'儲存中…':'儲存紀錄'}<Check/></Button></form>;
 }
-function Admin({auth,today,onError,onPhoto}:{auth:Auth;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
+function Admin({auth,email,today,onError,onPhoto}:{auth:Auth;email:string;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
   const [patients,setPatients]=useState<AdminPatient[]>([]),[name,setName]=useState(''),[busy,setBusy]=useState(false),[code,setCode]=useState('');
   const requestId=useRef(crypto.randomUUID());
   async function load(){const r=await api<{patients:typeof patients}>(auth,'admin.patients');setPatients(r.patients);}
   useEffect(()=>{load().catch(e=>onError(message(e)));},[]);
   async function create(e:FormEvent){e.preventDefault();setBusy(true);onError('');try{const r=await api<{code?:string}>(auth,'admin.createPatient',{name,isTest:false,requestId:requestId.current});setCode(r.code||'已建立，邀請碼只於首次建立時顯示。');requestId.current=crypto.randomUUID();await load();}catch(e){onError(message(e));}finally{setBusy(false);}}
-  return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：obm0304@gmail.com</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><Home/>開啟個案網站</a><p className="prod-login-note">請使用已綁定個案的 LINE 帳號登入。</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input placeholder="請輸入個案姓名" value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
+  return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：{email}</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><Home/>開啟個案網站</a><p className="prod-login-note">請使用已綁定個案的 LINE 帳號登入。</p><form className="prod-form" onSubmit={create}><h2>新增個案</h2><label>姓名<Input placeholder="請輸入個案姓名" value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></section>
+    <AdminAccounts auth={auth} currentEmail={email}/>
     <AdminDirectory auth={auth} today={today} patients={patients} onPatientChanged={patient=>setPatients(current=>current.map(p=>p.id===patient.id?patient:p))} onReload={load} onPhoto={onPhoto}/>
   </>;
 }
