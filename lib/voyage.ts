@@ -1,5 +1,5 @@
 // Participation rewards only: never infer adherence or clinical improvement.
-export type VoyageRecord = {date:string;kind:string;createdAt?:string;medicationComplete?:boolean};
+export type VoyageRecord = {date:string;kind:string;createdAt?:string;medicationComplete?:boolean;mode?:string;value?:number};
 const kinds = ['exercise','meal','medicine'];
 const DAY = 86400000;
 function validDay(date:string) {

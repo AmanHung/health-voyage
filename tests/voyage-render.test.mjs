@@ -12,7 +12,7 @@ const {outputFiles}=await build({
     export const journey=renderToStaticMarkup(<VoyageJourney progress={p}/>);
     export const achievements=renderToStaticMarkup(<VoyageAchievements progress={p}/>);
     export const navigation=renderToStaticMarkup(<VoyageNavigation view="history" onNavigate={()=>{}}/>);`,loader:'tsx',resolveDir:process.cwd()},
-  bundle:true,write:false,platform:'node',format:'cjs',define:{'import.meta.env.BASE_URL':'"/health-voyage/"'},
+  loader:{'.css':'empty'},bundle:true,write:false,platform:'node',format:'cjs',define:{'import.meta.env.BASE_URL':'"/health-voyage/"'},
 });
 const compiled={exports:{}};
 new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
@@ -25,7 +25,9 @@ test('home exposes all three record actions and zero-state progress honestly',()
 test('map and awards explain participation without inventing treatment success',()=>{
   for(const name of ['啟程港','活力島','好習慣灣'])assert.match(html.journey,new RegExp(name));
   assert.match(html.journey,/不代表疾病控制或服藥達標/);
-  assert.doesNotMatch(html.achievements,/voyage-badge earned/);
+  assert.doesNotMatch(html.achievements,/collection-tier is-earned/);
+  assert.equal((html.achievements.match(/class="collection-tier /g)||[]).length,30);
+  const ids=[...html.achievements.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
   assert.match(html.achievements,/未服用或有疑問/);
 });
 test('navigation provides labelled destinations and keeps history under My account',()=>{
