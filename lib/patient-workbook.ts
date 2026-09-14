@@ -6,7 +6,7 @@ export async function patientWorkbook(sheets: ExportSheet[]): Promise<Uint8Array
   workbook.creator = '健康航程';
   for (const data of sheets) {
     const sheet = workbook.addWorksheet(data.name, { views: [{ state: 'frozen', ySplit: 1 }] });
-    sheet.columns = data.headers.map(header => ({ header, width: data.name === '個案摘要' ? (header === '內容' ? 90 : 28) : /名稱|回饋|提醒|疑問/.test(header) ? 36 : 23 }));
+    sheet.columns = data.headers.map(header => ({ header, width: ['個案摘要','匯出說明'].includes(data.name) ? (header === '內容' ? 90 : 28) : /名稱|回饋|提醒|疑問/.test(header) ? 36 : 23 }));
     // Assign strings as strings, never formula objects, even if user text starts with '='.
     sheet.addRows(data.rows);
     sheet.eachRow((row, index) => {

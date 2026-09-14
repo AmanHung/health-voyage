@@ -11,6 +11,7 @@ test('exports only selected patient latest active revisions within inclusive dat
   assert.equal(sheets[1].rows[0][1],'new');
   assert.equal(sheets[1].rows[0][4],0);
   assert.equal(sheets[1].rows[0][2],'2026-09-14 09:00:00');
+  assert.equal(sheets[1].rows[0][8],'未上傳');
   assert.equal(sheets[2].rows.length,0);
 });
 test('range validation and empty export retain workbook headers', () => {
@@ -37,4 +38,11 @@ test('real XLSX roundtrip preserves Chinese, text instead of formulas, numbers, 
   assert.equal(cell.type,ExcelJS.ValueType.String);
   assert.equal(workbook.getWorksheet('運動紀錄').getCell('E2').value,3111);
   assert.equal(workbook.getWorksheet('運動紀錄').views[0].ySplit,1);
+});
+test('photo export contains only uploaded status for both exercise and meals',()=>{
+  const sheets=patientExportSheets(patient,[record('e',{hasImage:true}),record('m',{kind:'meal',hasImage:true})]);
+  for(const sheet of sheets.slice(1,3)){
+    const index=sheet.headers.indexOf('照片上傳狀態');
+    assert.equal(sheet.rows[0][index],'已上傳');
+  }
 });
