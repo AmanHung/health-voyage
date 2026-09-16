@@ -26,6 +26,7 @@ import {ActivityGoalCard} from './activity-goal';
 import {MedicationPatient,MedicationHistory,PharmacistHome} from './medication';
 import {AdminDirectory} from './admin-directory';
 import './activity-goal.css';
+import './hospital-theme.css';
 
 type View=PatientView|'admin';
 const taskNames={exercise:'運動',meal:'飲食',medicine:'用藥'};
@@ -57,7 +58,7 @@ function App(){
   function savedRecord(r:RecordItem,close=true){const newDay=!records.some(old=>old.date===r.date);setData(d=>d?{...d,records:[...(d.records||[]).filter(x=>!(x.date===r.date&&x.kind===r.kind)),r]}:d);if(close)setModal(null);setCelebration(n=>n+1);setNotice(r.kind==='meal'&&r.feedback?`本餐回饋：${r.feedback}${newDay?' 航程新增一個紀錄日。':''}`:newDay?'紀錄已保存，航程新增一個紀錄日！':'紀錄已保存，每份努力都留下足跡。');}
   const updateProfile=(p:Profile)=>setData(d=>d?{...d,profile:p}:d);
   return <div className={`prod-app ${data?.role==='patient'&&data.bound?'has-voyage-nav':''}`}>
-    <header className="topbar home-topbar"><Button variant="ghost" className="home-brand" onClick={()=>setView(data&&data.role!=='patient'?'admin':'home')}><Compass aria-hidden/><span>健康航程</span></Button>
+    <header className="topbar home-topbar"><Button variant="ghost" className="home-brand" aria-label="豐原醫院健康航程首頁" onClick={()=>setView(data&&data.role!=='patient'?'admin':'home')}><img className="hospital-logo" src={import.meta.env.BASE_URL+'voyage/fengyuan-hospital-logo.png'} alt="豐原醫院" width="195" height="60"/><span className="hospital-brand-title">健康航程</span></Button>
     {data&&auth&&<DropdownMenu><DropdownMenuTrigger className="profile-trigger" aria-label="個人選單">{data.role!=='patient'?'管':Array.from(profile?.nickname||'我')[0]}</DropdownMenuTrigger><DropdownMenuContent className="profile-menu" align="end">
       {data.role!=='patient'?<DropdownMenuItem onClick={()=>setView('admin')}><Shield/>管理後臺</DropdownMenuItem>:<><DropdownMenuItem onClick={()=>setView('home')}><Home/>首頁</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('history')}><CalendarDays/>健康紀錄</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('account')}><Settings/>我的帳號</DropdownMenuItem></>}
       <DropdownMenuItem onClick={logout}><LogOut/>登出</DropdownMenuItem>

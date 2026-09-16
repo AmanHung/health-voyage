@@ -1,0 +1,128 @@
+/* Approved hospital identity and illustrated voyage theme, September 2026.
+   Decorative art never encodes task completion or changes record rules. */
+.prod-app,.prod-dialog {
+  --primary:#197238;--primary-foreground:#fff;--ring:#237b42;
+  --foreground:#193f32;--background:#fff;--muted:#eef4e9;--muted-foreground:#526859;
+  --border:#dce6d7;--accent:#edf5e8;--accent-foreground:#205c35;
+  color:#193f32;
+}
+.prod-app {background:linear-gradient(180deg,#f5f8ef,#fffefa 760px);}
+.prod-app .topbar {border-bottom-color:#dce6d7;gap:12px;align-items:center;}
+.prod-app .home-brand {color:#135537;gap:20px;min-width:0;padding:4px 0;}
+.hospital-logo {width:180px;height:auto;object-fit:contain;flex-shrink:0;}
+.hospital-brand-title {border-left:1px solid #d0decf;padding-left:20px;white-space:nowrap;font-size:1.6rem;}
+.prod-app .profile-trigger {color:#25613a;background:#edf5e8;border-color:#d9e7d3;}
+.prod-app button:focus-visible,.prod-dialog button:focus-visible,.prod-app a:focus-visible {outline-color:#237b42;}
+.prod-app .surface {border-color:#dce6d7;box-shadow:0 6px 24px #294a2206;}
+.voyage-eyebrow,.voyage-icon-label {color:#2b713e;}
+.voyage-greeting,.voyage-greeting>span:first-child {color:#46634e;}
+.voyage-home-grid {grid-template-columns:1fr;gap:28px;}
+.voyage-hero {min-height:360px;border-color:#d2e7da;background:#d8eeec;}
+.voyage-hero>img {object-position:center;}
+.voyage-hero::after {background:linear-gradient(90deg,#fafff3e6 0%,#fafff3b8 30%,#fafff300 68%);}
+.voyage-hero-copy {padding:40px;}
+.prod-app .voyage-hero h1 {font-size:clamp(2rem,4vw,3.35rem);color:#105339;line-height:1.3;margin:16px 0;}
+.prod-app .voyage-hero-copy p {font-size:1.35rem;color:#345846;}
+.voyage-mobile-break {display:none;}
+.voyage-hero-status {left:36px;right:auto;min-width:285px;color:#305d47;border-color:#eef8e5;}
+.voyage-hero-status>svg,.voyage-hero-status strong {color:#17643c;}
+.voyage-section-heading>span {color:#536a58;}
+.voyage-task-list {grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.prod-app .voyage-task {display:grid;grid-template-columns:minmax(90px,.9fr) minmax(0,1.1fr);grid-template-rows:1fr auto;gap:10px 12px;padding:18px 16px;min-height:218px;border-color:#e0e8d9;box-shadow:0 6px 24px #294a220b;overflow:hidden;}
+.prod-app .voyage-task:hover {border-color:#92b78a;box-shadow:0 10px 28px #294a2215;}
+.voyage-task-art {display:block;align-self:center;width:100%;aspect-ratio:1;background-image:url('../public/voyage/task-illustrations.jpg');background-size:300% 100%;background-repeat:no-repeat;grid-row:1 / 3;}
+.art-exercise {background-position:left center;}
+.art-meal {background-position:center;}
+.art-medicine {background-position:right center;}
+.voyage-task-text {align-self:center;gap:6px;}
+.voyage-task-text strong {font-size:1.4rem;color:#214834;}
+.voyage-task-text>span {font-size:1rem;color:#546a58;}
+.voyage-task-state {font-size:.9rem;background:#f0f3eb;border-radius:8px;padding:4px 9px;color:#52634f;justify-self:start;}
+.prod-app .voyage-task .voyage-task-action {grid-column:2;justify-content:center;background:linear-gradient(135deg,#28873f,#106134);color:white;min-height:52px;border-radius:14px;font-size:1.0625rem;padding:10px 6px;gap:4px;}
+.voyage-task.recorded {border-color:#95bf98;background:#fff;}
+.voyage-task.recorded .voyage-task-state {background:#e8f3e3;color:#286438;}
+.voyage-scenic-summary {display:flex;align-items:center;justify-content:space-between;gap:28px;width:100%;margin:26px 0;padding:26px 32px;text-align:left;border:1px solid #b4d7d0;border-radius:24px;min-height:164px;background:linear-gradient(90deg,#f5fff5ef,#edfff9c7 35%,#e6fcff70),url('../public/voyage/coast.webp') center 65% / cover;color:#134e37;cursor:pointer;}
+.voyage-scenic-summary>span:first-child {display:grid;gap:6px;}
+.voyage-scenic-summary strong {font-size:1.5rem;}
+.voyage-scenic-summary>span:first-child>span:last-child {font-size:1rem;}
+.voyage-summary-route {display:flex;flex:1;max-width:390px;align-items:center;gap:8px;color:#156b61;}
+.voyage-summary-route>svg {width:40px;height:40px;flex-shrink:0;}
+.voyage-summary-route>span {flex:1;border-top:4px dotted #397f70;}
+.voyage-summary-link {display:flex;align-items:center;gap:8px;font-size:1.125rem;font-weight:700;}
+.voyage-summary-link svg {width:22px;height:22px;}
+.voyage-week,.voyage-history-link {border-color:#dce6d7;}
+.voyage-week-heading strong,.voyage-explainer>svg {color:#237b42;}
+.voyage-progress [data-slot=progress-track] {background:#e6efdf;}
+.voyage-progress [data-slot=progress-indicator],.voyage-week-days .logged i {background:#237b42;border-color:#237b42;}
+.voyage-week-days i {background:#f1f5ec;border-color:#dce6d7;}
+.voyage-next,.voyage-explainer {background:#edf5e7;border-color:#d5e5ca;}
+.prod-app .voyage-next button,.prod-app .prod-legal a {color:#206d37;}
+.prod-app .voyage-next p,.prod-app .voyage-week>p,.prod-app .voyage-page-heading p,.prod-app .voyage-explainer p,.prod-app .prod-footer {color:#536b58;}
+.voyage-navigation {border-color:#dce6d7;box-shadow:0 8px 40px #26482218;}
+.prod-app .voyage-navigation button {color:#58705d;}
+.prod-app .voyage-navigation button[aria-current=page] {color:#1a6b33;background:#eaf4e2;}
+.voyage-map {border-color:#b6dacf;max-height:none;}
+.voyage-map-total {position:absolute;top:20px;left:50%;transform:translateX(-50%);padding:9px 20px;white-space:nowrap;border-radius:99px;background:#fffffff2;color:#1d5a3c;font-size:1.125rem;box-shadow:0 3px 18px #1651481a;}
+.voyage-map-total strong {font-size:1.5rem;}
+.voyage-ports .port-0 {top:20%;left:auto;right:5%;}
+.voyage-ports .port-1 {top:49%;right:auto;left:5%;}
+.voyage-ports .port-2 {top:80%;left:auto;right:5%;}
+.next .voyage-port-marker {background:#247635;}
+.reached .voyage-port-marker {background:#286f43;}
+.voyage-ports .next>div {background:#f0fae8;border-color:#c3e0b5;}
+.voyage-ports strong {color:#24543a;}
+.prod-app .prod-login {max-width:820px;text-align:center;justify-items:center;}
+.prod-app .prod-login>button,.prod-app .prod-login>form {width:min(100%,420px);}
+.prod-app .prod-login>label {width:100%;text-align:left;}
+.voyage-login-art {height:240px;object-position:right center;}
+.prod-app .prod-login h1 {color:#135537;}
+.voyage-dialog {border-top-color:#237b42;background:#fcfef9;}
+.voyage-dialog.meal {border-top-color:#b67a23;}
+.voyage-dialog.medicine {border-top-color:#237b42;}
+.voyage-dialog .prod-choice:has([data-checked]) {background:#edf6e6;border-color:#237b42;}
+@media(max-width:1000px){
+  .voyage-task-list {gap:12px;}
+  .prod-app .voyage-task {grid-template-columns:1fr;gap:8px;padding:16px;}
+  .voyage-task-art {grid-row:auto;width:125px;justify-self:center;}
+  .voyage-task-text {text-align:center;justify-items:center;}
+  .prod-app .voyage-task .voyage-task-action {grid-column:1;}
+  .voyage-summary-route {max-width:210px;}
+}
+@media(max-width:600px){
+  .prod-app .home-brand {gap:10px;}
+  .hospital-logo {width:125px;}
+  .hospital-brand-title {font-size:1.25rem;padding-left:10px;letter-spacing:0;}
+  .prod-app .profile-trigger {min-width:44px;min-height:44px;}
+  .voyage-hero {min-height:280px;}
+  .voyage-hero>img {object-position:right center;}
+  .voyage-hero::after {background:linear-gradient(90deg,#fafff3e8,#fafff399 45%,#fafff300 88%);}
+  .voyage-hero-copy {padding:22px;}
+  .prod-app .voyage-hero h1 {font-size:2rem;}
+  .voyage-mobile-break {display:block;}
+  .prod-app .voyage-hero-copy p {display:block;font-size:1rem;max-width:11em;}
+  .voyage-hero-status {left:14px;right:14px;min-width:0;}
+  .voyage-task-list {grid-template-columns:1fr;gap:14px;}
+  .prod-app .voyage-task {grid-template-columns:108px minmax(0,1fr);grid-template-rows:1fr auto;gap:8px 16px;min-height:176px;padding:16px;}
+  .voyage-task-art {grid-row:1 / 3;width:108px;}
+  .voyage-task-text {text-align:left;justify-items:start;}
+  .voyage-task-text strong {font-size:1.375rem;}
+  .voyage-task-text>span {font-size:1rem;}
+  .prod-app .voyage-task .voyage-task-action {grid-column:2;min-height:48px;}
+  .prod-app .voyage-task .voyage-task-action>span {max-width:none;}
+  .voyage-scenic-summary {padding:22px;gap:12px;flex-wrap:wrap;}
+  .voyage-summary-route {display:none;}
+  .voyage-summary-link {font-size:1rem;}
+  .voyage-map {min-height:0;aspect-ratio:2/3;}
+  .voyage-map-total {top:14px;padding:7px 16px;font-size:1rem;}
+  .voyage-ports strong {font-size:1.125rem;}
+  .voyage-ports li>div>span {font-size:.9rem;}
+  .voyage-login-art {height:180px;}
+}
+@media(max-width:360px){
+  .hospital-logo {width:108px;}
+  .hospital-brand-title {font-size:1.0625rem;padding-left:8px;}
+  .prod-app .home-brand {gap:8px;}
+  .prod-app .voyage-task {grid-template-columns:86px minmax(0,1fr);gap:8px 12px;padding:14px;}
+  .voyage-task-art {width:86px;}
+  .voyage-task-text strong {font-size:1.25rem;}
+}
