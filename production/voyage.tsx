@@ -22,7 +22,7 @@ export function WeeklyProgress({progress}:{progress:VoyageProgress}) {
     <p>{progress.weeklyDays>=progress.weeklyGoal?'本週挑戰完成！每一份努力都已留下。':`再累積 ${progress.weeklyGoal-progress.weeklyDays} 天，完成本週小挑戰。`}</p>
   </div>;
 }
-export function VoyageHome({nickname,progress,records,onTask,onNavigate,children}:{nickname:string;progress:VoyageProgress;records:RecordItem[];onTask:(kind:RecordItem['kind'],record?:RecordItem)=>void;onNavigate:(view:PatientView)=>void;children?:ReactNode}) {
+export function VoyageHome({nickname,progress,records,onTask,onNavigate,children,leaderboard}:{nickname:string;progress:VoyageProgress;records:RecordItem[];onTask:(kind:RecordItem['kind'],record?:RecordItem)=>void;onNavigate:(view:PatientView)=>void;children?:ReactNode;leaderboard?:ReactNode}) {
   const today=progress.today;
   const nextBadge=achievementCollections(progress).filter(s=>s.next).sort((a,b)=>b.value/b.next!.goal-a.value/a.next!.goal)[0];
   return <>
@@ -32,7 +32,7 @@ export function VoyageHome({nickname,progress,records,onTask,onNavigate,children
     <button className="voyage-scenic-summary" onClick={()=>onNavigate('journey')}><span><span className="voyage-eyebrow">我的健康航程</span><strong>累積記錄 {progress.totalDays} 天</strong><span>{progress.nextPort?`下一站：${progress.nextPort.name}`:'繼續收藏每一天的足跡'}</span></span><span className="voyage-summary-route" aria-hidden="true"><Ship/><span/><Anchor/><span/><Flag/></span><span className="voyage-summary-link">看看航程<ArrowRight aria-hidden/></span></button>
     {children}
     {nextBadge&&<button className="collection-home-teaser" onClick={()=>onNavigate('achievements')}><BadgeArt series={nextBadge.id} tier={nextBadge.next!.index}/><span><small>下一枚收藏</small><strong>{nextBadge.next!.name}</strong><span>再累積 {(nextBadge.next!.goal-nextBadge.value).toLocaleString()} {nextBadge.unit}，讓收藏更豐富</span></span><ChevronRight aria-hidden/></button>}
-    <div className="voyage-home-bottom"><WeeklyProgress progress={progress}/><section className="voyage-next"><span className="voyage-icon-label"><Compass aria-hidden/>下一站，期待與您相遇</span><h2>{progress.nextPort?.name||'新的足跡，繼續累積'}</h2><p>{progress.nextPort?`再累積 ${progress.nextPort.days-progress.totalDays} 個紀錄日，就能抵達。`:'這條航線已完成，紀錄與成就繼續為您珍藏。'}</p><Button variant="ghost" onClick={()=>onNavigate('journey')}>看看我的航程<ArrowRight aria-hidden/></Button></section></div>
+    <div className="voyage-home-bottom"><WeeklyProgress progress={progress}/>{leaderboard}</div>
   </>;
 }
 export function VoyageJourney({progress}:{progress:VoyageProgress}) {

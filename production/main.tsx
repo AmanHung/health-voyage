@@ -1,4 +1,5 @@
 import {AdminAccounts} from './admin-accounts';
+import {StepLeaderboard} from './step-leaderboard';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft} from 'lucide-react';
@@ -40,6 +41,7 @@ function App(){
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
   const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<{nickname:string;steps:number}[]>([]),[rankError,setRankError]=useState('');
   const [celebration,setCelebration]=useState(0);
+  const [rankLoading,setRankLoading]=useState(true),[rankRetry,setRankRetry]=useState(0);
   const googleEl=useRef<HTMLDivElement>(null);const authEpoch=useRef(0);
   async function login(identity:Auth){
     const epoch=++authEpoch.current;setBusy(true);setError('');
@@ -49,7 +51,7 @@ function App(){
   async function refresh(){if(!auth)return;const result=await api<Bootstrap>(auth,'bootstrap');setData(result);}
   useEffect(()=>{if(configured())lineAuth(false).then(identity=>{if(identity)void login(identity);}).catch(e=>setError(message(e)));},[]);
   useEffect(()=>{if(adminLogin&&googleEl.current)googleButton(googleEl.current,identity=>void login(identity)).catch(e=>setError(message(e)));},[adminLogin]);
-  useEffect(()=>{if(!auth||!data?.bound)return;let active=true;setRankError('');api<{rows:typeof rows}>(auth,'leaderboard').then(r=>{if(active)setRows(r.rows);}).catch(()=>{if(active)setRankError('排行榜暫時無法讀取。');});return()=>{active=false;};},[auth,data]);
+  useEffect(()=>{if(!auth||!data?.bound)return;let active=true;setRankError('');setRankLoading(true);api<{rows:typeof rows}>(auth,'leaderboard').then(r=>{if(active)setRows(r.rows);}).catch(()=>{if(active)setRankError('排行榜暫時無法讀取。');}).finally(()=>{if(active)setRankLoading(false);});return()=>{active=false;};},[auth,data,rankRetry]);
   function logout(){authEpoch.current++;signOut();setAuth(null);setData(null);setRows([]);setImage(null);setModal(null);setAdminLogin(false);setNotice('');setError('');setBusy(false);}
   async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id});setImage(result.dataUrl);}catch(e){setError(message(e));}finally{setBusy(false);}}
   const records=data?.records||[],profile=data?.profile;
@@ -68,8 +70,8 @@ function App(){
       {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>服務準備完成後，即可開始使用。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
       data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
-      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
-      {view==='journey'&&progress&&<><VoyageJourney progress={progress}/><section className="surface prod-rank"><h2><Trophy/>{Number(data.today.slice(5,7))} 月同行步數榜</h2>{rankError?<p role="status">{rankError}</p>:rows.length?<ol>{rows.map((row,i)=><li key={i}><span>{i+1}．{row.nickname}</span><strong>{row.steps.toLocaleString()} 步</strong></li>)}</ol>:<p>本月尚無步數紀錄。</p>}<p>排行榜以暱稱顯示。依自己的能力活動，不必追趕他人。</p></section></>}
+      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} leaderboard={<StepLeaderboard rows={rows} today={data.today} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/>} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
+      {view==='journey'&&progress&&<VoyageJourney progress={progress}/>}
       {view==='achievements'&&progress&&<VoyageAchievements progress={progress}/>}
       {view==='history'&&<><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine'&&r.medicationComplete!==false).map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/><section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section></>}
       {view==='account'&&profile&&<><HistoryLink onClick={()=>navigate('history')}/><Account auth={auth} profile={profile} onSaved={p=>{updateProfile(p);setNotice('個人設定已保存。');}}/></>}
