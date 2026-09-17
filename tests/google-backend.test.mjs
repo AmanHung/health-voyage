@@ -50,7 +50,7 @@ test('all real patients enter the nickname leaderboard; test patients never ente
   e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1234,activity:'步行'},requestId:randomUUID(),image},real.identity);
   const current=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows;
   const stored=JSON.parse(current[2][5]);stored.participating=false;current[2][5]=JSON.stringify(stored);
-  assert.deepEqual(e.call('leaderboard',{},real.identity).data.rows,[{nickname:'正式暱稱',steps:1234}]);
+  assert.deepEqual(e.call('leaderboard',{},real.identity).data.rows,[{nickname:'正式暱稱',avatar:'sail',steps:1234}]);
 });
 test('ordinary JPEG metadata is accepted after private upload checks',()=>{
   const e=environment();
@@ -116,7 +116,7 @@ test('invalid and inactive patient goals fail without writes; service advertises
   const stored=JSON.parse(row[5]);stored.active=false;row[5]=JSON.stringify(stored);
   assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps:3000,requestId:randomUUID()}).ok,false);
   assert.equal(JSON.parse(row[5]).activityGoals,undefined);
-  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans']);
+  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans','leaderboardAvatars']);
 });
 
 test('admin deletes the daily record without revealing older revisions; photos and audit survive',()=>{
@@ -198,4 +198,26 @@ test('deleted unbound invitation is unavailable and malformed mutations fail clo
   assert.equal(e.call('bind',{code:created.code,nickname:'測試新人'},e.auth('new','line')).ok,false);
   e.properties.set('ACCEPT_PATIENTS','false');e.properties.set('ACCEPT_TEST_PATIENTS','true');
   assert.equal(e.call('bind',{code:created.code,nickname:'測試新人'},e.auth('new','line')).ok,false);
+});
+
+test('avatar profile updates persist, replace photos and cannot modify another patient',()=>{
+  const e=environment(),a=e.patient('avatarA',false),b=e.patient('avatarB',false);
+  const saved=e.call('profile',{nickname:'小船長',avatar:image,patientId:b.id},a.identity);
+  assert.equal(saved.ok,true,saved.error);assert.equal(saved.data.profile.avatar,image);
+  assert.equal(e.call('bootstrap',{},a.identity).data.profile.avatar,image);
+  assert.equal(e.call('bootstrap',{},b.identity).data.profile.avatar,'sail');
+  const rows=e.call('leaderboard',{},b.identity).data.rows;
+  assert.equal(rows.find(r=>r.nickname==='小船長').avatar,image);
+  assert.deepEqual(Object.keys(rows[0]).sort(),['avatar','nickname','steps']);
+  assert.equal(e.call('profile',{nickname:'小船長'},a.identity).data.profile.avatar,image);
+  assert.equal(e.call('profile',{nickname:'小船長',avatar:'star'},a.identity).data.profile.avatar,'star');
+  assert.equal(e.call('leaderboard',{},b.identity).data.rows.some(r=>r.avatar===image),false);
+  assert.equal(e.call('profile',{nickname:'未綁定',avatar:'sun'},e.auth('unbound-avatar','line')).ok,false);
+});
+test('avatar upload rejects arbitrary URLs, SVG, oversized data and invalid JPEG contents',()=>{
+  const e=environment(),a=e.patient('bad-avatar');
+  for(const avatar of ['https://example.com/photo.jpg','data:image/svg+xml;base64,PHN2Zz4=', 'data:image/jpeg;base64,/9j/'+ 'A'.repeat(16000),'data:image/jpeg;base64,/9j/AAAA','unknown',null]){
+    assert.equal(e.call('profile',{nickname:'拒絕測試',avatar},a.identity).ok,false);
+    assert.equal(e.call('bootstrap',{},a.identity).data.profile.avatar,'sail');
+  }
 });

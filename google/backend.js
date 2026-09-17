@@ -1,5 +1,6 @@
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
 import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, feedback } from './domain.js';
+import {avatarValue,validAvatar} from '../lib/avatar.ts';
 import {medicationService} from './medication-service.js';
 const ADMIN = 'obm0304@gmail.com';
 const SCHEMAS = {
@@ -87,7 +88,7 @@ function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
   need(p && p.active && !p.deletedAt, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, participating:p.participating, isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
 function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
 function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
 function visibleRecordIds(records) {
@@ -273,6 +274,11 @@ export function dispatch(action, payload, identity) {
   if (action === 'profile') return locked(()=> {
     const current=person(identity);
     current.nickname=cleanText(payload.nickname,2,12,'暱稱');
+    if(payload.avatar!==undefined){
+      need(validAvatar(payload.avatar),'請選擇有效的頭像或重新上傳照片。');
+      if(payload.avatar.startsWith('data:')){const image=validateImage(payload.avatar);need(image.width<=128&&image.height<=128,'頭像尺寸過大，請重新選取。');}
+      current.avatar=payload.avatar;
+    }
     current.participating=true;
     write('Patients',current,current._row);audit(identity.subject,'profile.update',current.id);
     return {profile:publicPerson(current)};
@@ -313,7 +319,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:4,capabilities:['activityGoals','adminTrash','medicationPlans'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:5,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

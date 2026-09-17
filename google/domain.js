@@ -1,3 +1,4 @@
+import {avatarValue} from '../lib/avatar.ts';
 // Pure validation and aggregation shared with the Apps Script backend tests.
 import {MEAL_TYPES,COOKING_METHODS,STAPLE_AMOUNTS,VEGETABLE_AMOUNTS,PROTEIN_AMOUNTS,SOUP_AMOUNTS,SIDES,PORTION_SIZES,PROCESSED_FOOD,EATEN as INTERVIEW_EATEN,DRINKS as INTERVIEW_DRINKS,mealQuestionKeys,groupsFromInterview} from '../lib/meal-interview.ts';
 export const GROUPS = ['主食', '豆魚蛋肉', '蔬菜', '水果', '乳品', '不確定'];
@@ -68,7 +69,7 @@ export function latest(records, includeDeleted = false) {
 }
 export function leaderboard(patients, records, month) {
   return patients.filter(p => p.active && !p.deletedAt && !p.isTest).map(p => ({
-    nickname: p.nickname,
+    nickname: p.nickname, avatar: avatarValue(p.avatar),
     steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)).reduce((sum, r) => sum + r.value, 0),
   })).sort((a,b) => b.steps - a.steps).slice(0, 20);
 }

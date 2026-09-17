@@ -1,5 +1,6 @@
+import {Avatar,AvatarPicker,prepareAvatar} from './avatar';
 import {AdminAccounts} from './admin-accounts';
-import {StepLeaderboard} from './step-leaderboard';
+import {StepLeaderboard,type StepRow} from './step-leaderboard';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft} from 'lucide-react';
@@ -39,7 +40,7 @@ function App(){
   const [auth,setAuth]=useState<Auth|null>(null),[data,setData]=useState<Bootstrap|null>(null),[view,setView]=useState<View>('home');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[adminLogin,setAdminLogin]=useState(false);
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
-  const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<{nickname:string;steps:number}[]>([]),[rankError,setRankError]=useState('');
+  const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<StepRow[]>([]),[rankError,setRankError]=useState('');
   const [celebration,setCelebration]=useState(0);
   const [rankLoading,setRankLoading]=useState(true),[rankRetry,setRankRetry]=useState(0);
   const googleEl=useRef<HTMLDivElement>(null);const authEpoch=useRef(0);
@@ -61,7 +62,7 @@ function App(){
   const updateProfile=(p:Profile)=>setData(d=>d?{...d,profile:p}:d);
   return <div className={`prod-app ${data?.role==='patient'&&data.bound?'has-voyage-nav':''}`}>
     <header className="topbar home-topbar"><Button variant="ghost" className="home-brand" aria-label="豐原醫院健康航程首頁" onClick={()=>setView(data&&data.role!=='patient'?'admin':'home')}><img className="hospital-logo" src={import.meta.env.BASE_URL+'voyage/fengyuan-hospital-logo.png'} alt="豐原醫院" width="195" height="60"/><span className="hospital-brand-title">健康航程</span></Button>
-    {data&&auth&&<DropdownMenu><DropdownMenuTrigger className="profile-trigger" aria-label="個人選單">{data.role!=='patient'?'管':Array.from(profile?.nickname||'我')[0]}</DropdownMenuTrigger><DropdownMenuContent className="profile-menu" align="end">
+    {data&&auth&&<DropdownMenu><DropdownMenuTrigger className="profile-trigger" aria-label="個人選單">{data.role!=='patient'?'管':<Avatar value={profile?.avatar}/>}</DropdownMenuTrigger><DropdownMenuContent className="profile-menu" align="end">
       {data.role!=='patient'?<DropdownMenuItem onClick={()=>setView('admin')}><Shield/>管理後臺</DropdownMenuItem>:<><DropdownMenuItem onClick={()=>setView('home')}><Home/>首頁</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('history')}><CalendarDays/>健康紀錄</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('account')}><Settings/>我的帳號</DropdownMenuItem></>}
       <DropdownMenuItem onClick={logout}><LogOut/>登出</DropdownMenuItem>
     </DropdownMenuContent></DropdownMenu>}</header>
@@ -70,7 +71,7 @@ function App(){
       {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>服務準備完成後，即可開始使用。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
       data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
-      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} leaderboard={<StepLeaderboard rows={rows} today={data.today} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/>} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
+      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} leaderboard={<StepLeaderboard rows={rows} today={data.today} ownSteps={records.filter(r=>r.kind==='exercise'&&r.mode==='steps'&&r.date.startsWith(data.today.slice(0,7))).reduce((sum,r)=>sum+(r.value||0),0)} avatar={profile?.avatar} onEditAvatar={()=>navigate('account')} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/>} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
       {view==='journey'&&progress&&<VoyageJourney progress={progress}/>}
       {view==='achievements'&&progress&&<VoyageAchievements progress={progress}/>}
       {view==='history'&&<><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine'&&r.medicationComplete!==false).map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/><section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section></>}
@@ -89,9 +90,10 @@ function Binding({auth,onBound}:{auth:Auth;onBound:()=>Promise<void>}){
   return <form className="surface prod-form prod-login" onSubmit={submit}><h1>第一次使用</h1><label>邀請碼<Input value={code} onChange={e=>setCode(e.target.value)} required autoComplete="off"/></label><label>想使用的暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label>{error&&<p role="alert" className="prod-error">{error}</p>}<Button type="submit" disabled={busy}>{busy?'綁定中…':'開始記錄'}</Button></form>;
 }
 function Account({auth,profile,onSaved}:{auth:Auth;profile:Profile;onSaved:(p:Profile)=>void}){
-  const [nickname,setNickname]=useState(profile.nickname),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  async function save(e:FormEvent){e.preventDefault();setBusy(true);setError('');try{const r=await api<{profile:Profile}>(auth,'profile',{nickname});onSaved(r.profile);}catch(e){setError(message(e));}finally{setBusy(false);}}
-  return <form className="surface prod-form" onSubmit={save}><h1>我的帳號</h1><label>排行榜暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label><p>排行榜只顯示暱稱與本月步數。</p>{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy}>{busy?'儲存中…':'儲存設定'}</Button></form>;
+  const [nickname,setNickname]=useState(profile.nickname),[avatar,setAvatar]=useState(profile.avatar||'sail'),[processing,setProcessing]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  async function selectAvatar(file:File){setProcessing(true);setError('');try{setAvatar(await prepareAvatar(file));}catch(e){setError(message(e));}finally{setProcessing(false);}}
+  async function save(e:FormEvent){e.preventDefault();if(busy||processing)return;setBusy(true);setError('');try{const r=await api<{profile:Profile}>(auth,'profile',{nickname,avatar});if(r.profile.avatar!==avatar)throw new Error('頭像服務尚未更新，請稍後再試。');onSaved(r.profile);}catch(e){setError(message(e));}finally{setBusy(false);}}
+  return <form className="surface prod-form" onSubmit={save}><h1>我的帳號</h1><label>排行榜暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label><AvatarPicker value={avatar} onChange={setAvatar} disabled={busy||processing} onFile={file=>void selectAvatar(file)}/>{processing&&<p role="status">正在處理大頭照…</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing}>{busy?'儲存中…':'儲存設定'}</Button></form>;
 }
 function RecordList({records,onPhoto,onEdit}:{records:RecordItem[];onPhoto:(r:RecordItem)=>void;onEdit?:(r:RecordItem)=>void}){
   return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p><MedicationHistory record={r}/>{r.feedback&&<p className="prod-feedback"><strong>本餐回饋：</strong>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
