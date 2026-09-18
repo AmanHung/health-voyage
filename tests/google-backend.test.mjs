@@ -42,7 +42,7 @@ test('idempotent retry makes one record; corrections preserve history and replac
   e.call('profile',{nickname:'參賽者'},p.identity);
   assert.equal(e.call('leaderboard',{},p.identity).data.rows[0].steps,2000);
 });
-test('all real patients enter the nickname leaderboard; test patients never enter',()=>{
+test('legacy accounts retain their default leaderboard visibility',()=>{
   const e=environment(),p=e.patient('A');e.call('profile',{nickname:'測試暱稱'},p.identity);
   e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1000,activity:'步行'},requestId:randomUUID(),image},p.identity);
   assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[]);
@@ -116,7 +116,7 @@ test('invalid and inactive patient goals fail without writes; service advertises
   const stored=JSON.parse(row[5]);stored.active=false;row[5]=JSON.stringify(stored);
   assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps:3000,requestId:randomUUID()}).ok,false);
   assert.equal(JSON.parse(row[5]).activityGoals,undefined);
-  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans','leaderboardAvatars']);
+  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard']);
 });
 
 test('admin deletes the daily record without revealing older revisions; photos and audit survive',()=>{
@@ -220,4 +220,37 @@ test('avatar upload rejects arbitrary URLs, SVG, oversized data and invalid JPEG
     assert.equal(e.call('profile',{nickname:'拒絕測試',avatar},a.identity).ok,false);
     assert.equal(e.call('bootstrap',{},a.identity).data.profile.avatar,'sail');
   }
+});
+
+test('admin can include test members and exclude real members without losing records or avatar settings',()=>{
+  const e=environment(),p=e.patient('T1'),real=e.patient('T2',false);
+  const record={kind:'exercise',date:dayKey(),mode:'steps',value:1000,activity:'步行'};
+  assert.equal(e.call('save',{record,requestId:randomUUID(),image},p.identity).ok,true);
+  const enabled=e.call('admin.leaderboard',{patientId:p.id,enabled:true});assert.equal(enabled.ok,true,enabled.error);
+  assert.equal(enabled.data.patient.leaderboardEnabled,true);assert.ok(enabled.data.patient.leaderboardVersion);
+  assert.equal(e.call('leaderboard',{},p.identity).data.rows.some(r=>r.steps===1000),true);
+  const disabled=e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:enabled.data.patient.leaderboardVersion});assert.equal(disabled.ok,true);
+  e.call('profile',{nickname:'修改後暱稱',avatar:'star',leaderboardEnabled:true},p.identity);
+  assert.equal(e.call('bootstrap',{},p.identity).data.profile.leaderboardEnabled,false);
+  assert.equal(e.call('bootstrap',{},p.identity).data.records.length,1);
+  assert.equal(e.call('leaderboard',{},p.identity).data.rows.some(r=>r.nickname==='修改後暱稱'),false);
+  assert.equal(e.call('admin.leaderboard',{patientId:real.id,enabled:false}).data.patient.leaderboardEnabled,false);
+  assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[]);
+  const audit=e.books.get(e.properties.get('RECORD_SHEET_ID')).getSheetByName('Audit').rows.slice(1).map(r=>JSON.parse(r[4]));
+  assert.equal(audit.filter(r=>r.action==='leaderboard.update').length,3);
+});
+test('leaderboard toggle enforces admin access, input validation, safe retries and concurrent edits',()=>{
+  const e=environment(),p=e.patient('T3');
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true},p.identity).ok,false);
+  for(const enabled of ['true',1,null])assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled}).ok,false);
+  assert.equal(e.call('admin.leaderboard',{patientId:'missing',enabled:true}).ok,false);
+  const first=e.call('admin.leaderboard',{patientId:p.id,enabled:true}).data.patient;
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true}).data.patient.leaderboardVersion,first.leaderboardVersion);
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false}).ok,false);
+  const second=e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:first.leaderboardVersion}).data.patient;
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:first.leaderboardVersion}).ok,false);
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:second.leaderboardVersion}).ok,true);
+  e.call('admin.patientStatus',{patientId:p.id,deleted:true,requestId:randomUUID()});
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false}).ok,false);
+  assert.deepEqual(e.call('leaderboard').data.rows,[]);
 });

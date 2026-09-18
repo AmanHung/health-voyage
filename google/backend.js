@@ -1,5 +1,5 @@
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
-import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, feedback } from './domain.js';
+import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, leaderboardEnabled, feedback } from './domain.js';
 import {avatarValue,validAvatar} from '../lib/avatar.ts';
 import {medicationService} from './medication-service.js';
 const ADMIN = 'obm0304@gmail.com';
@@ -88,8 +88,8 @@ function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
   need(p && p.active && !p.deletedAt, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
-function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
+function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,leaderboardVersion:p.leaderboardVersion||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
 function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
 function visibleRecordIds(records) {
   const byId=new Map(records.map(r=>[r.id,r])),visible=new Set();
@@ -201,6 +201,18 @@ export function dispatch(action, payload, identity) {
     });
   }
   if (action === 'admin.patients') { admin(identity); return {patients:read('Patients').map(adminPerson)}; }
+  if (action === 'admin.leaderboard') {
+    admin(identity);need(typeof payload.enabled==='boolean','請確認排行榜勾選狀態。');
+    return locked(()=>{
+      const p=read('Patients').find(p=>p.id===payload.patientId);
+      need(p&&p.active&&!p.deletedAt,'找不到使用中的個案。');
+      if(leaderboardEnabled(p)===payload.enabled)return {patient:adminPerson(p)};
+      need((p.leaderboardVersion||null)===(payload.previousVersion||null),'排行榜設定已更新，請重新整理名冊再操作。');
+      const previous=leaderboardEnabled(p);p.leaderboardEnabled=payload.enabled;p.leaderboardVersion=Utilities.getUuid();
+      write('Patients',p,p._row);audit(identity.subject,'leaderboard.update',p.id,{previous,enabled:payload.enabled,version:p.leaderboardVersion});
+      return {patient:adminPerson(p)};
+    });
+  }
   if (action === 'admin.patientStatus') {
     admin(identity);need(typeof payload.deleted==='boolean','請確認刪除或復原操作。');
     const requestId=cleanText(payload.requestId,16,64,'操作編號');
@@ -319,7 +331,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:5,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:6,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

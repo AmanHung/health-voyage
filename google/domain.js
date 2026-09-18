@@ -67,8 +67,9 @@ export function latest(records, includeDeleted = false) {
   // reveal an earlier revision as if it were still current.
   return [...map.values()].filter(r => includeDeleted || !r.deletedAt);
 }
+export function leaderboardEnabled(p) { return typeof p.leaderboardEnabled === 'boolean' ? p.leaderboardEnabled : !p.isTest; }
 export function leaderboard(patients, records, month) {
-  return patients.filter(p => p.active && !p.deletedAt && !p.isTest).map(p => ({
+  return patients.filter(p => p.active && !p.deletedAt && leaderboardEnabled(p)).map(p => ({
     nickname: p.nickname, avatar: avatarValue(p.avatar),
     steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)).reduce((sum, r) => sum + r.value, 0),
   })).sort((a,b) => b.steps - a.steps).slice(0, 20);

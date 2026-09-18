@@ -26,3 +26,8 @@ test('admin exposes deletion and trash while confirmation text explains patient 
   assert.match(html.descriptions[0],/停止登入、讀取與儲存/);assert.match(html.descriptions[0],/LINE 綁定會保留/);
   assert.match(html.descriptions[1],/不再計入步數、航程與任務統計/);assert.match(html.descriptions[2],/原本已刪除的單筆紀錄仍保留/);
 });
+
+test('directory includes a labelled administrator leaderboard checkbox and persistence guidance',()=>{
+  assert.match(html.directory,/type="checkbox"/);assert.match(html.directory,/測試個案：加入步數排行榜/);
+  assert.match(html.directory,/勾選後自動儲存/);assert.match(html.directory,/測試成員也可加入/);
+});
