@@ -1,0 +1,2286 @@
+[
+  {
+    "id": "food-1-1",
+    "name": "原味燕麥",
+    "aliases": "燕麥片 麥片 oatmeal",
+    "cat": "主食",
+    "color": "green",
+    "why": "保留全穀纖維，可替換部分精製主食。",
+    "tip": "選無額外加糖的款式，依個人計畫安排主食份量。",
+    "alt": "將部分白飯或白麵換成全穀主食。",
+    "art": "food-1-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "全穀類保留穀物的麩皮與胚芽，提供澱粉及膳食纖維。",
+    "cautions": [
+      "主食份量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-1-2",
+    "name": "糙米飯",
+    "aliases": "糙米",
+    "cat": "主食",
+    "color": "green",
+    "why": "保留全穀纖維，可替換部分精製主食。",
+    "tip": "選無額外加糖的款式，依個人計畫安排主食份量。",
+    "alt": "將部分白飯或白麵換成全穀主食。",
+    "art": "food-1-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "全穀類保留穀物的麩皮與胚芽，提供澱粉及膳食纖維。",
+    "cautions": [
+      "主食份量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-1-3",
+    "name": "五穀飯",
+    "aliases": "五穀米 雜糧飯",
+    "cat": "主食",
+    "color": "green",
+    "why": "保留全穀纖維，可替換部分精製主食。",
+    "tip": "選無額外加糖的款式，依個人計畫安排主食份量。",
+    "alt": "將部分白飯或白麵換成全穀主食。",
+    "art": "food-1-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "全穀類保留穀物的麩皮與胚芽，提供澱粉及膳食纖維。",
+    "cautions": [
+      "主食份量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-1-4",
+    "name": "紫米飯",
+    "aliases": "紫米 黑米",
+    "cat": "主食",
+    "color": "green",
+    "why": "保留全穀纖維，可替換部分精製主食。",
+    "tip": "選無額外加糖的款式，依個人計畫安排主食份量。",
+    "alt": "將部分白飯或白麵換成全穀主食。",
+    "art": "food-1-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "全穀類保留穀物的麩皮與胚芽，提供澱粉及膳食纖維。",
+    "cautions": [
+      "主食份量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-1-5",
+    "name": "全麥吐司",
+    "aliases": "全麥土司 全穀麵包",
+    "cat": "主食",
+    "color": "green",
+    "why": "保留全穀纖維，可替換部分精製主食。",
+    "tip": "看成分是否以全穀為主，不只看麵包顏色。",
+    "alt": "將部分白飯或白麵換成全穀主食。",
+    "art": "food-1-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "全穀類保留穀物的麩皮與胚芽，提供澱粉及膳食纖維。",
+    "cautions": [
+      "看全穀比例",
+      "留意鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-1",
+    "name": "白飯",
+    "aliases": "白米 米飯",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "煮飯時加入部分糙米或其他全穀，逐步增加全穀比例。",
+    "art": "food-2-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-2",
+    "name": "白吐司",
+    "aliases": "白土司 吐司 土司",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "改選以全麥為主要原料的吐司，少抹果醬或奶油。",
+    "art": "food-2-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-3",
+    "name": "白饅頭",
+    "aliases": "饅頭",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "改選無額外加糖、以全麥為主要原料的饅頭。",
+    "art": "food-2-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-4",
+    "name": "白麵條／陽春麵",
+    "aliases": "陽春麵 白麵 麵條",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "可改選全麥麵條；仍吃陽春麵時，少加肉燥與醬汁，搭配青菜。",
+    "art": "food-2-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-5",
+    "name": "冬粉",
+    "aliases": "粉絲",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "吃冬粉時減少油蔥與調味，加入蔬菜、豆腐或蛋；冬粉份量算入主食。",
+    "art": "food-2-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-6",
+    "name": "米粉",
+    "aliases": "米粉湯",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "搭配蔬菜及豆、魚、蛋或瘦肉；有機會可增加全穀比例。",
+    "alt": "選少油、少鹽的米粉料理，搭配青菜與魚片，少喝調味湯。",
+    "art": "food-2-6",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "精製澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-7",
+    "name": "藕粉／太白粉",
+    "aliases": "藕粉 太白粉 勾芡",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "這類澱粉不等於全穀；留意勾芡及甜湯的糖量。",
+    "alt": "勾芡時減少粉量，改做薄芡或不勾芡；做藕粉甜湯時少加糖。",
+    "art": "food-2-7",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "勾芡澱粉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-8",
+    "name": "蘿蔔糕",
+    "aliases": "蘿蔔粄",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "加工配方的鈉與油量不同；少油煎，醬料另外放。",
+    "alt": "選蒸熱或少油煎的蘿蔔糕，醬料另外放、少量沾。",
+    "art": "food-2-8",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "留意鈉",
+      "煎油用量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-9",
+    "name": "地瓜",
+    "aliases": "番薯 甘藷 烤地瓜",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "屬主食，可替換部分飯量；選蒸烤、不裹糖的做法。",
+    "alt": "選原味蒸地瓜或烤地瓜，替換部分飯量，不另外裹糖或油炸。",
+    "art": "food-2-9",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "計入主食"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-10",
+    "name": "芋頭",
+    "aliases": "芋仔",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "屬主食；選蒸煮，少選油炸或糖漬做法。",
+    "alt": "選原味蒸芋頭，替換部分飯量，少選糖漬芋頭或炸芋頭。",
+    "art": "food-2-10",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "計入主食"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-11",
+    "name": "馬鈴薯",
+    "aliases": "洋芋 土豆 potato",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "屬主食；蒸煮後少加奶油，不以薯條代替。",
+    "alt": "選水煮或蒸馬鈴薯，以香草調味，少加奶油與美乃滋。",
+    "art": "food-2-11",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "計入主食"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-2-12",
+    "name": "玉米",
+    "aliases": "玉米粒",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "以澱粉為主，留意份量與整餐搭配。",
+    "tip": "屬主食的一部分；水煮比塗抹大量奶油、醬汁更合適。",
+    "alt": "選原味水煮或清蒸玉米，少抹奶油與烤肉醬，份量算入主食。",
+    "art": "food-2-12",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供澱粉，屬於一餐的主食來源。",
+    "cautions": [
+      "計入主食"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-3-1",
+    "name": "鮮肉水餃",
+    "aliases": "水餃 餃子",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "主食與餡料一起吃，留意油、鹽及份量。",
+    "tip": "搭配一份新鮮蔬菜，少沾醬；配方與烹調方式會影響選擇。",
+    "alt": "選瘦肉、蔬菜餡的水餃，以水煮取代煎炸，少沾醬。",
+    "art": "food-3-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵皮提供澱粉，餡料含肉類、蔬菜及調味料，是組合型主食。",
+    "cautions": [
+      "餡料油脂",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-3-2",
+    "name": "鍋貼",
+    "aliases": "煎餃",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "主食與餡料一起吃，留意油、鹽及份量。",
+    "tip": "煎製用油較多，可改水餃並減少沾醬。",
+    "alt": "改選水煮水餃，保留餃類選擇並減少煎製用油。",
+    "art": "food-3-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵皮提供澱粉，餡料含肉類、蔬菜及調味料，是組合型主食。",
+    "cautions": [
+      "煎油用量",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-3-3",
+    "name": "肉包",
+    "aliases": "包子",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "主食與餡料一起吃，留意油、鹽及份量。",
+    "tip": "搭配一份新鮮蔬菜，少沾醬；配方與烹調方式會影響選擇。",
+    "alt": "選瘦肉、蔬菜餡的蒸包，避免肥肉餡；有全麥麵皮時可優先選。",
+    "art": "food-3-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵皮提供澱粉，餡料含肉類、蔬菜及調味料，是組合型主食。",
+    "cautions": [
+      "餡料油脂",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-3-4",
+    "name": "小籠包",
+    "aliases": "湯包",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "主食與餡料一起吃，留意油、鹽及份量。",
+    "tip": "搭配一份新鮮蔬菜，少沾醬；配方與烹調方式會影響選擇。",
+    "alt": "可換成瘦肉、蔬菜餡的蒸餃，少沾醬，搭配一份青菜。",
+    "art": "food-3-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵皮提供澱粉，餡料含肉類、蔬菜及調味料，是組合型主食。",
+    "cautions": [
+      "餡料油脂",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-4-1",
+    "name": "雞絲麵",
+    "aliases": "雞絲麵湯",
+    "cat": "主食",
+    "color": "red",
+    "why": "常有較多油或鈉，建議降低食用頻率。",
+    "tip": "看營養標示；醬包減量、不喝完湯，仍需搭配蔬菜與蛋白質。",
+    "alt": "改用未油炸麵條煮湯麵，少加調味料，加入青菜與蛋。",
+    "art": "food-4-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "常見產品經油炸或預先調味，麵體和調味包都會影響油、鈉含量。",
+    "cautions": [
+      "高鈉",
+      "油炸麵體"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-4-2",
+    "name": "泡麵／速食麵",
+    "aliases": "泡麵 方便麵 即食麵 速食麵",
+    "cat": "主食",
+    "color": "red",
+    "why": "常有較多油或鈉，建議降低食用頻率。",
+    "tip": "看營養標示；醬包減量、不喝完湯，仍需搭配蔬菜與蛋白質。",
+    "alt": "改用未油炸麵條，加青菜、豆腐或蛋；若吃泡麵，調味包減量。",
+    "art": "food-4-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "常見產品經油炸或預先調味，麵體和調味包都會影響油、鈉含量。",
+    "cautions": [
+      "高鈉",
+      "油炸麵體"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-5-1",
+    "name": "油麵",
+    "aliases": "黃麵",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "製程或拌醬可能增加油與鈉。",
+    "tip": "少加肉燥與醬汁，搭配蔬菜和未加工主菜。",
+    "alt": "可改選未拌油的麵條，少加肉燥與醬汁。",
+    "art": "food-5-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵體與拌醬共同構成這道主食，總用油量依製程與配方而異。",
+    "cautions": [
+      "製程用油",
+      "醬料鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-5-2",
+    "name": "乾麵",
+    "aliases": "拌麵 麻醬麵",
+    "cat": "主食",
+    "color": "yellow",
+    "why": "製程或拌醬可能增加油與鈉。",
+    "tip": "少加肉燥與醬汁，搭配蔬菜和未加工主菜。",
+    "alt": "選少油、少醬的乾拌麵，醬料另外放，再搭配燙青菜。",
+    "art": "food-5-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "麵體與拌醬共同構成這道主食，總用油量依製程與配方而異。",
+    "cautions": [
+      "拌醬油脂",
+      "醬料鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-6-1",
+    "name": "傳統豆腐",
+    "aliases": "板豆腐 非油炸豆腐",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "植物性蛋白質，可輪替加工肉品。",
+    "tip": "選非油炸、少鹽做法；滷汁或醬料另外放。",
+    "alt": "用豆製品替換一樣香腸、火腿或培根。",
+    "art": "food-6-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豆類製品提供植物性蛋白質，質地與含水量會影響每份營養濃度。",
+    "cautions": [
+      "少淋醬油"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-6-2",
+    "name": "嫩豆腐",
+    "aliases": "絹豆腐",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "植物性蛋白質，可輪替加工肉品。",
+    "tip": "選非油炸、少鹽做法；滷汁或醬料另外放。",
+    "alt": "用豆製品替換一樣香腸、火腿或培根。",
+    "art": "food-6-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豆類製品提供植物性蛋白質，質地與含水量會影響每份營養濃度。",
+    "cautions": [
+      "少淋醬油"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-6-3",
+    "name": "原味豆干",
+    "aliases": "豆乾 豆干",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "植物性蛋白質，可輪替加工肉品。",
+    "tip": "原味豆干仍可能含鹽，查看標示並少加滷汁。",
+    "alt": "用豆製品替換一樣香腸、火腿或培根。",
+    "art": "food-6-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豆類製品提供植物性蛋白質，質地與含水量會影響每份營養濃度。",
+    "cautions": [
+      "留意鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-6-4",
+    "name": "毛豆",
+    "aliases": "無調味毛豆",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "植物性蛋白質，可輪替加工肉品。",
+    "tip": "選非油炸、少鹽做法；滷汁或醬料另外放。",
+    "alt": "用豆製品替換一樣香腸、火腿或培根。",
+    "art": "food-6-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "尚未成熟的黃豆，提供植物性蛋白質與膳食纖維。",
+    "cautions": [
+      "避開鹽漬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-6-5",
+    "name": "黃豆／黑豆",
+    "aliases": "黃豆 黑豆 豆類",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "植物性蛋白質，可輪替加工肉品。",
+    "tip": "選非油炸、少鹽做法；滷汁或醬料另外放。",
+    "alt": "用豆製品替換一樣香腸、火腿或培根。",
+    "art": "food-6-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豆類提供植物性蛋白質及膳食纖維，原豆與豆製品的營養濃度不同。",
+    "cautions": [
+      "避開蜜漬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-7-1",
+    "name": "清蒸魚",
+    "aliases": "魚肉 魚",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "魚類是主菜輪替的選擇，優先非油炸。",
+    "tip": "用清蒸、烤或少油煎的做法，少加鹽與醬汁。",
+    "alt": "將炸魚排或加工肉品換成非油炸魚類。",
+    "art": "food-7-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "魚肉提供蛋白質；脂肪含量依魚種與部位而異。",
+    "cautions": [
+      "避免油炸",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-7-2",
+    "name": "吳郭魚",
+    "aliases": "台灣鯛 鯛魚",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "魚類是主菜輪替的選擇，優先非油炸。",
+    "tip": "用清蒸、烤或少油煎的做法，少加鹽與醬汁。",
+    "alt": "將炸魚排或加工肉品換成非油炸魚類。",
+    "art": "food-7-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "魚肉提供蛋白質；脂肪含量依魚種與部位而異。",
+    "cautions": [
+      "避免油炸",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-7-3",
+    "name": "鮭魚",
+    "aliases": "鮭魚排 salmon",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "魚類是主菜輪替的選擇，優先非油炸。",
+    "tip": "用清蒸、烤或少油煎的做法，少加鹽與醬汁。",
+    "alt": "將炸魚排或加工肉品換成非油炸魚類。",
+    "art": "food-7-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "魚肉提供蛋白質；脂肪含量依魚種與部位而異。",
+    "cautions": [
+      "避免油炸",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-7-4",
+    "name": "鯖魚",
+    "aliases": "鯖魚片",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "魚類是主菜輪替的選擇，優先非油炸。",
+    "tip": "鹽漬鯖魚的鈉可能較高，優先選未醃漬款。",
+    "alt": "將炸魚排或加工肉品換成非油炸魚類。",
+    "art": "food-7-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "魚肉提供蛋白質；脂肪含量依魚種與部位而異。",
+    "cautions": [
+      "鹽漬款鈉高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-7-5",
+    "name": "虱目魚",
+    "aliases": "虱目魚肚",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "魚類是主菜輪替的選擇，優先非油炸。",
+    "tip": "依份量安排，少加油、不喝完調味湯。",
+    "alt": "將炸魚排或加工肉品換成非油炸魚類。",
+    "art": "food-7-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "魚肉提供蛋白質；脂肪含量依魚種與部位而異。",
+    "cautions": [
+      "避免油炸",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-8-1",
+    "name": "蝦子／草蝦",
+    "aliases": "白蝦 蝦仁 草蝦",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "海鮮可輪替主菜，注意烹調方式。",
+    "tip": "優先蒸煮、充分加熱，少選裹粉油炸及濃醬料理。",
+    "alt": "選蒸煮海鮮，搭配蔬菜與適量主食。",
+    "art": "food-8-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蝦貝類提供蛋白質，裹粉、沾醬與烹調用油會改變整道菜的組成。",
+    "cautions": [
+      "充分加熱",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-8-2",
+    "name": "蛤蠣／文蛤",
+    "aliases": "蛤蜊 文蛤",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "海鮮可輪替主菜，注意烹調方式。",
+    "tip": "優先蒸煮、充分加熱，少選裹粉油炸及濃醬料理。",
+    "alt": "選蒸煮海鮮，搭配蔬菜與適量主食。",
+    "art": "food-8-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蝦貝類提供蛋白質，裹粉、沾醬與烹調用油會改變整道菜的組成。",
+    "cautions": [
+      "充分加熱",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-8-3",
+    "name": "蚵仔／牡蠣",
+    "aliases": "牡蠣 生蠔",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "海鮮可輪替主菜，注意烹調方式。",
+    "tip": "充分煮熟，少選酥炸或大量勾芡的做法。",
+    "alt": "選蒸煮海鮮，搭配蔬菜與適量主食。",
+    "art": "food-8-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蝦貝類提供蛋白質，裹粉、沾醬與烹調用油會改變整道菜的組成。",
+    "cautions": [
+      "充分加熱",
+      "沾醬鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-9-1",
+    "name": "去皮雞肉",
+    "aliases": "雞胸肉 雞腿肉 雞肉 白斬雞",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "去皮、未加工的禽肉可作為主菜選項。",
+    "tip": "選清蒸、白斬或少油烹調，醬汁少量。",
+    "alt": "炸雞腿換成去皮的非油炸雞肉。",
+    "art": "food-9-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "禽肉提供蛋白質，雞皮、鴨皮與可見脂肪會增加脂肪含量。",
+    "cautions": [
+      "去皮去脂",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-9-2",
+    "name": "去皮鴨肉",
+    "aliases": "鴨肉",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "去皮、未加工的禽肉可作為主菜選項。",
+    "tip": "去皮後選瘦肉，留意燻製或鹽水調味的鈉。",
+    "alt": "炸雞腿換成去皮的非油炸雞肉。",
+    "art": "food-9-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "禽肉提供蛋白質，雞皮、鴨皮與可見脂肪會增加脂肪含量。",
+    "cautions": [
+      "去皮去脂",
+      "醬汁鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-10-1",
+    "name": "瘦豬肉",
+    "aliases": "豬肉 里肌肉 豬里肌",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "紅肉可少量輪替，優先瘦肉與非油炸做法。",
+    "tip": "去除明顯肥肉，避免經常以紅肉取代豆類與魚類。",
+    "alt": "選清蒸或少油炒的豬里肌，部分餐次再輪替豆腐或魚。",
+    "art": "food-10-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豬肉與牛肉屬紅肉，提供蛋白質，脂肪量依部位而不同。",
+    "cautions": [
+      "紅肉份量",
+      "去除肥肉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-10-2",
+    "name": "瘦牛肉",
+    "aliases": "牛肉 牛排",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "紅肉可少量輪替，優先瘦肉與非油炸做法。",
+    "tip": "去除明顯肥肉，避免經常以紅肉取代豆類與魚類。",
+    "alt": "選去除明顯肥肉的牛肉，少油烹調、不淋奶油，部分餐次輪替豆腐或魚。",
+    "art": "food-10-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "豬肉與牛肉屬紅肉，提供蛋白質，脂肪量依部位而不同。",
+    "cautions": [
+      "紅肉份量",
+      "去除肥肉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-11-1",
+    "name": "雞蛋／蛋黃",
+    "aliases": "水煮蛋 蒸蛋 全蛋 蛋黃",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "全蛋與蛋黃需放在整體飲食中安排。",
+    "tip": "依個人飲食計畫安排份量，少搭配培根、香腸或大量奶油。",
+    "alt": "選水煮蛋或蒸蛋，少用油煎，也少搭配培根、香腸。",
+    "art": "food-11-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "雞蛋提供蛋白質，脂肪與膽固醇主要集中在蛋黃。",
+    "cautions": [
+      "膽固醇",
+      "少油烹調"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-12-1",
+    "name": "雞蛋白",
+    "aliases": "蛋白",
+    "cat": "豆魚蛋肉",
+    "color": "green",
+    "why": "蛋白是脂肪較少的蛋白質來源。",
+    "tip": "選水煮、蒸煮做法，留意額外的油與鹽。",
+    "alt": "以水煮蛋白搭配其他原型食物。",
+    "art": "food-12-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蛋白主要由水分與蛋白質組成，脂肪含量較少。",
+    "cautions": [
+      "少鹽調味"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-13-1",
+    "name": "香腸／熱狗",
+    "aliases": "香腸 熱狗 德式香腸",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "加工肉品常有較多鈉，建議少選。",
+    "tip": "降低頻率與份量，不以加工肉品作為每天主要蛋白質來源。",
+    "alt": "餐點中的香腸或熱狗，可換成未加工的去皮雞肉或原味豆腐。",
+    "art": "food-13-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "經醃製或加工的肉品，常加入鹽、糖及其他配料。",
+    "cautions": [
+      "高鈉",
+      "留意磷添加物"
+    ],
+    "cautionNotes": [
+      "是否含磷添加物依產品而異，請查看成分表中的磷酸、磷酸鹽等名稱。有被交代限磷者，依照護團隊的計畫選擇。"
+    ]
+  },
+  {
+    "id": "food-13-2",
+    "name": "火腿／培根",
+    "aliases": "火腿 培根 煙肉",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "加工肉品常有較多鈉，建議少選。",
+    "tip": "降低頻率與份量，不以加工肉品作為每天主要蛋白質來源。",
+    "alt": "三明治或早餐中的火腿、培根，可換成雞肉片或水煮蛋。",
+    "art": "food-13-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "經醃製或加工的肉品，常加入鹽、糖及其他配料。",
+    "cautions": [
+      "高鈉",
+      "留意磷添加物"
+    ],
+    "cautionNotes": [
+      "是否含磷添加物依產品而異，請查看成分表中的磷酸、磷酸鹽等名稱。有被交代限磷者，依照護團隊的計畫選擇。"
+    ]
+  },
+  {
+    "id": "food-13-3",
+    "name": "肉鬆／魚鬆",
+    "aliases": "肉鬆 魚鬆 素肉鬆",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "加工肉品常有較多鈉，建議少選。",
+    "tip": "除鹽外也可能加糖、加油，留意標示。",
+    "alt": "配粥或夾吐司時，改用無額外加糖、少鹽的雞絲或蒸魚肉。",
+    "art": "food-13-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "經醃製或加工的肉品，常加入鹽、糖及其他配料。",
+    "cautions": [
+      "鈉與添加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-14-1",
+    "name": "貢丸／魚丸／花枝丸",
+    "aliases": "貢丸 魚丸 花枝丸 丸子",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "加工配方差異大，留意鈉、油與份量。",
+    "tip": "查看營養標示，少加沾醬，不取代所有原型主菜。",
+    "alt": "煮湯或火鍋時，以瘦肉片、魚片或花枝塊替換部分丸子。",
+    "art": "food-14-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "加工食品的肉、魚、豆類、澱粉及油脂比例依配方而不同。",
+    "cautions": [
+      "留意鈉",
+      "留意磷添加物"
+    ],
+    "cautionNotes": [
+      "是否含磷添加物依產品而異，請查看成分表中的磷酸、磷酸鹽等名稱。有被交代限磷者，依照護團隊的計畫選擇。"
+    ]
+  },
+  {
+    "id": "food-14-2",
+    "name": "甜不辣／黑輪",
+    "aliases": "甜不辣 黑輪 魚板",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "加工配方差異大，留意鈉、油與份量。",
+    "tip": "查看營養標示，少加沾醬，不取代所有原型主菜。",
+    "alt": "煮湯或關東煮時，可換成原味豆腐或魚片，醬料少量。",
+    "art": "food-14-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "加工食品的肉、魚、豆類、澱粉及油脂比例依配方而不同。",
+    "cautions": [
+      "留意鈉",
+      "留意磷添加物"
+    ],
+    "cautionNotes": [
+      "是否含磷添加物依產品而異，請查看成分表中的磷酸、磷酸鹽等名稱。有被交代限磷者，依照護團隊的計畫選擇。"
+    ]
+  },
+  {
+    "id": "food-14-3",
+    "name": "百頁豆腐",
+    "aliases": "百葉豆腐",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "加工配方差異大，留意鈉、油與份量。",
+    "tip": "通常添加油脂，脂肪可能高於原味豆腐；少選油炸做法。",
+    "alt": "改用傳統豆腐或嫩豆腐，以蒸煮取代油炸。",
+    "art": "food-14-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "常由大豆蛋白、澱粉與油脂製成，組成與傳統豆腐不同。",
+    "cautions": [
+      "添加油脂",
+      "留意鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-14-4",
+    "name": "皮蛋",
+    "aliases": "皮蛋豆腐",
+    "cat": "豆魚蛋肉",
+    "color": "yellow",
+    "why": "加工配方差異大，留意鈉、油與份量。",
+    "tip": "留意鈉與調味醬，可少量搭配原味豆腐。",
+    "alt": "涼拌豆腐中的皮蛋可換成水煮蛋，保留豆腐、減少醬油膏。",
+    "art": "food-14-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蛋經鹼性加工後呈凝膠狀，與一般水煮蛋的加工方式不同。",
+    "cautions": [
+      "留意鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-15-1",
+    "name": "鹹蛋／鐵蛋",
+    "aliases": "鹹鴨蛋 鹹蛋 鐵蛋",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "醃漬或濃縮調味，較容易增加鈉攝取。",
+    "tip": "作為少量配菜，減少頻率，避免再加醬油。",
+    "alt": "改選未醃漬的水煮蛋或蒸蛋，少加鹽與醬油。",
+    "art": "food-15-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蛋經醃漬或反覆滷製，調味與水分變化會影響營養濃度。",
+    "cautions": [
+      "醃滷鈉高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-16-1",
+    "name": "豬肝／腰子／大腸",
+    "aliases": "內臟 豬肝 腰子 大腸",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "內臟類較不適合作為經常食用的主菜。",
+    "tip": "豬肝、腰子與大腸的脂肪、膽固醇差異大，少量少頻率。",
+    "alt": "湯品或主菜中的內臟，可換成瘦肉片、去皮雞肉或豆腐。",
+    "art": "food-16-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "內臟部位的脂肪與膽固醇含量差異大，不等同於一般瘦肉。",
+    "cautions": [
+      "膽固醇",
+      "脂肪依部位"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-17-1",
+    "name": "炸雞／雞排",
+    "aliases": "炸雞腿 雞排 鹽酥雞",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "裹粉油炸增加用油，建議少選。",
+    "tip": "降低頻率，換非油炸主菜，搭配新鮮蔬菜。",
+    "alt": "改選去皮、不裹粉的烤雞或清蒸雞肉，醬料另外放。",
+    "art": "food-17-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "食物油炸時會吸附油脂；裹粉厚度也會影響熱量。",
+    "cautions": [
+      "油炸油脂",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-17-2",
+    "name": "炸魚排",
+    "aliases": "炸魚 魚排",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "裹粉油炸增加用油，建議少選。",
+    "tip": "降低頻率，換非油炸主菜，搭配新鮮蔬菜。",
+    "alt": "改選清蒸魚或不裹粉、少油煎的魚排。",
+    "art": "food-17-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "食物油炸時會吸附油脂；裹粉厚度也會影響熱量。",
+    "cautions": [
+      "油炸油脂",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-17-3",
+    "name": "油炸豆腐",
+    "aliases": "油豆腐 炸豆腐 炸臭豆腐",
+    "cat": "豆魚蛋肉",
+    "color": "red",
+    "why": "裹粉油炸增加用油，建議少選。",
+    "tip": "降低頻率，換非油炸主菜，搭配新鮮蔬菜。",
+    "alt": "改選清蒸或少油煎的傳統豆腐，也可選涼拌嫩豆腐、少加醬汁。",
+    "art": "food-17-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "食物油炸時會吸附油脂；裹粉厚度也會影響熱量。",
+    "cautions": [
+      "油炸油脂",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-1",
+    "name": "高麗菜",
+    "aliases": "包心菜 甘藍",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-2",
+    "name": "洋蔥",
+    "aliases": "洋蔥頭",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-3",
+    "name": "絲瓜／冬瓜",
+    "aliases": "絲瓜 冬瓜",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-4",
+    "name": "小黃瓜／大黃瓜",
+    "aliases": "小黃瓜 大黃瓜 胡瓜",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-5",
+    "name": "菠菜",
+    "aliases": "菠菜葉",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-6",
+    "name": "莧菜",
+    "aliases": "紅莧菜 白莧菜",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-6",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-7",
+    "name": "空心菜",
+    "aliases": "蕹菜",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-7",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-8",
+    "name": "青花椰菜",
+    "aliases": "花椰菜 西蘭花 綠花椰菜",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-8",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-9",
+    "name": "番茄／聖女番茄",
+    "aliases": "西紅柿 大番茄 小番茄 聖女番茄",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-9",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-10",
+    "name": "竹筍／桂竹筍",
+    "aliases": "竹筍 桂竹筍",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "選未醃漬的筍類；罐裝或醃製品留意鈉。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-10",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "提供水分與膳食纖維，是蔬菜配菜的來源。",
+    "cautions": [
+      "醃漬款鈉高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-11",
+    "name": "木耳",
+    "aliases": "黑木耳 白木耳",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "少油少鹽料理；甜木耳飲的添加糖另計。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-11",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "木耳屬食用菌類，提供膳食纖維，含水量依鮮品或乾品而不同。",
+    "cautions": [
+      "甜飲留意糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-12",
+    "name": "香菇／金針菇",
+    "aliases": "香菇 金針菇 杏鮑菇 菇類",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "新鮮或無調味冷凍蔬菜都可；少油烹調，少淋肉燥、醬汁。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-12",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "菇類屬食用菌，提供水分與膳食纖維。",
+    "cautions": [
+      "少油少醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-18-13",
+    "name": "紫菜／海帶",
+    "aliases": "海帶芽 海藻 紫菜 海帶",
+    "cat": "蔬菜",
+    "color": "green",
+    "why": "增加蔬菜種類與膳食纖維。",
+    "tip": "選少鹽原味，調味海苔及海帶醬菜留意鈉。",
+    "alt": "把醃漬配菜換成新鮮蔬菜。",
+    "art": "food-18-13",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "食用藻類含膳食纖維與礦物質，乾製、泡發及調味會影響每份含量。",
+    "cautions": [
+      "調味款留意鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-19-1",
+    "name": "醬瓜／酸菜／雪裡紅",
+    "aliases": "醬瓜 酸菜 雪裡紅 醃菜 泡菜",
+    "cat": "蔬菜",
+    "color": "red",
+    "why": "醃製蔬菜的鈉通常較高，建議少選。",
+    "tip": "少量作為配菜，不取代新鮮蔬菜。",
+    "alt": "配菜改用新鮮小黃瓜、高麗菜或芥菜，少鹽烹調。",
+    "art": "food-19-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "蔬菜經鹽漬或醬漬保存，與新鮮蔬菜的鈉含量不同。",
+    "cautions": [
+      "高鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-1",
+    "name": "蘋果",
+    "aliases": "apple",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-2",
+    "name": "鳳梨",
+    "aliases": "菠蘿",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-3",
+    "name": "葡萄",
+    "aliases": "提子",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-4",
+    "name": "水梨",
+    "aliases": "梨子",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-5",
+    "name": "蓮霧",
+    "aliases": "蓮霧果",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-6",
+    "name": "西瓜",
+    "aliases": "watermelon",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-6",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-7",
+    "name": "香蕉",
+    "aliases": "banana",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-7",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-8",
+    "name": "奇異果",
+    "aliases": "獼猴桃",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-8",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-9",
+    "name": "芭樂",
+    "aliases": "番石榴",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-9",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-10",
+    "name": "哈密瓜／美濃瓜",
+    "aliases": "哈密瓜 美濃瓜 香瓜",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "輪替不同水果，避免加糖、煉乳或鹽；不以大量果汁替代。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-10",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "整果適量",
+      "不加糖鹽"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-20-11",
+    "name": "榴槤",
+    "aliases": "榴蓮",
+    "cat": "水果",
+    "color": "green",
+    "why": "完整水果保留纖維，依個人份量安排。",
+    "tip": "能量密度較高，留意份量，不因綠燈而多吃。",
+    "alt": "含糖點心或果汁換成適量完整水果。",
+    "art": "food-20-11",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "完整果肉提供水分、天然糖分與膳食纖維。",
+    "cautions": [
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-21-1",
+    "name": "葡萄乾／紅棗",
+    "aliases": "葡萄乾 紅棗 果乾",
+    "cat": "水果",
+    "color": "yellow",
+    "why": "無加糖果乾可少量選，糖分與能量較集中。",
+    "tip": "先看有無添加糖，預先分小份，不當成不限量零食。",
+    "alt": "當水果點心時，可選新鮮葡萄或其他完整水果；仍吃果乾時選無加糖、小份裝。",
+    "art": "food-21-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "水果乾燥後水分減少，同樣重量的糖分與熱量較集中。",
+    "cautions": [
+      "糖分濃縮",
+      "留意加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-22-1",
+    "name": "楊桃",
+    "aliases": "楊桃汁",
+    "cat": "水果",
+    "color": "review",
+    "why": "楊桃涉及腎功能安全性，先確認是否適合。",
+    "tip": "腎臟病患者應避免楊桃；腎功能狀況不明時先詢問照護團隊。",
+    "alt": "依個人飲食計畫選擇其他完整水果。",
+    "art": "food-22-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "楊桃含有腎功能不佳者不易排除的毒性物質。",
+    "cautions": [
+      "腎臟病禁食"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-23-1",
+    "name": "原味花生",
+    "aliases": "花生 落花生",
+    "cat": "點心",
+    "color": "green",
+    "why": "無調味堅果提供不飽和脂肪，適量選用。",
+    "tip": "選原味、無加鹽或糖衣款，先分好一小份。",
+    "alt": "以適量原味堅果替換糕餅。",
+    "art": "food-23-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "堅果與種子提供不飽和脂肪，也含蛋白質與膳食纖維。",
+    "cautions": [
+      "熱量密度高",
+      "避開鹽糖衣"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-23-2",
+    "name": "原味腰果",
+    "aliases": "腰果",
+    "cat": "點心",
+    "color": "green",
+    "why": "無調味堅果提供不飽和脂肪，適量選用。",
+    "tip": "選原味、無加鹽或糖衣款，先分好一小份。",
+    "alt": "以適量原味堅果替換糕餅。",
+    "art": "food-23-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "堅果與種子提供不飽和脂肪，也含蛋白質與膳食纖維。",
+    "cautions": [
+      "熱量密度高",
+      "避開鹽糖衣"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-23-3",
+    "name": "原味核桃／杏仁",
+    "aliases": "核桃 杏仁 堅果",
+    "cat": "點心",
+    "color": "green",
+    "why": "無調味堅果提供不飽和脂肪，適量選用。",
+    "tip": "選原味、無加鹽或糖衣款，先分好一小份。",
+    "alt": "以適量原味堅果替換糕餅。",
+    "art": "food-23-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "堅果與種子提供不飽和脂肪，也含蛋白質與膳食纖維。",
+    "cautions": [
+      "熱量密度高",
+      "避開鹽糖衣"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-23-4",
+    "name": "無調味瓜子",
+    "aliases": "瓜子 南瓜子 葵瓜子",
+    "cat": "點心",
+    "color": "green",
+    "why": "無調味堅果提供不飽和脂肪，適量選用。",
+    "tip": "選原味、無加鹽或糖衣款，先分好一小份。",
+    "alt": "以適量原味堅果替換糕餅。",
+    "art": "food-23-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "堅果與種子提供不飽和脂肪，也含蛋白質與膳食纖維。",
+    "cautions": [
+      "熱量密度高",
+      "避開鹽糖衣"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-24-1",
+    "name": "菠蘿麵包／奶酥麵包",
+    "aliases": "菠蘿包 奶酥麵包 甜麵包",
+    "cat": "點心",
+    "color": "red",
+    "why": "常有較多添加糖或飽和脂肪，建議少選。",
+    "tip": "減少頻率和份量，不把甜點當每天固定早餐。",
+    "alt": "早餐麵包可換成無甜餡、以全麥為主要原料的吐司或麵包。",
+    "art": "food-24-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "甜點常由糖、澱粉與油脂製成，營養組成依配方而異。",
+    "cautions": [
+      "添加糖",
+      "飽和脂肪"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-24-2",
+    "name": "蛋糕／甜餅乾",
+    "aliases": "蛋糕 餅乾 甜點",
+    "cat": "點心",
+    "color": "red",
+    "why": "常有較多添加糖或飽和脂肪，建議少選。",
+    "tip": "減少頻率和份量，不把甜點當每天固定早餐。",
+    "alt": "點心可換成無加糖優格搭配完整水果；想吃糕餅時，選小份、少糖且少奶油的款式。",
+    "art": "food-24-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "甜點常由糖、澱粉與油脂製成，營養組成依配方而異。",
+    "cautions": [
+      "添加糖",
+      "飽和脂肪"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-24-3",
+    "name": "糖果／冰糖／蜂蜜",
+    "aliases": "糖果 冰糖 蜂蜜 果糖",
+    "cat": "點心",
+    "color": "red",
+    "why": "常有較多添加糖或飽和脂肪，建議少選。",
+    "tip": "蜂蜜、冰糖仍是糖，天然來源不代表可不限量添加。",
+    "alt": "當零食時少量吃糖果；沖泡飲品或煮甜湯時，逐步減少冰糖、蜂蜜用量，不以另一種糖替代。",
+    "art": "food-24-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要提供糖分；蜂蜜與冰糖同樣會增加飲食中的糖攝取。",
+    "cautions": [
+      "添加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-24-4",
+    "name": "洋芋片／薯條",
+    "aliases": "洋芋片 薯片 薯條",
+    "cat": "點心",
+    "color": "red",
+    "why": "常有較多添加糖或飽和脂肪，建議少選。",
+    "tip": "同時留意油與鈉；改選較少加工的點心。",
+    "alt": "想吃馬鈴薯點心時，選原味烤薯塊或蒸馬鈴薯，少油、少鹽。",
+    "art": "food-24-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "馬鈴薯切片或切條後加工，常搭配油炸與鹽調味。",
+    "cautions": [
+      "留意鈉",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-25-1",
+    "name": "巧克力",
+    "aliases": "黑巧克力 可可巧克力",
+    "cat": "點心",
+    "color": "yellow",
+    "why": "巧克力的糖與飽和脂肪依配方而異。",
+    "tip": "查看營養標示，少量品嚐，不當成護心保健品。",
+    "alt": "比較同類產品的添加糖與飽和脂肪，選較少者並小份品嚐，不只看可可百分比。",
+    "art": "food-25-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "由可可原料製成，糖與脂肪比例依產品而異。",
+    "cautions": [
+      "留意加糖",
+      "飽和脂肪"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-26-1",
+    "name": "西谷米／粉圓",
+    "aliases": "西谷米 粉圓 珍珠 西米露",
+    "cat": "點心",
+    "color": "yellow",
+    "why": "粉圓與西谷米以澱粉為主，常搭配糖水。",
+    "tip": "減少糖水、奶精及份量，不當成全穀主食。",
+    "alt": "甜湯或飲品中的粉圓、西谷米減半，搭配無糖豆漿或少糖湯底，少加奶精。",
+    "art": "food-26-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "以澱粉製成的配料，本身不等同全穀，常搭配糖水食用。",
+    "cautions": [
+      "澱粉配料",
+      "糖水加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-27-1",
+    "name": "白開水",
+    "aliases": "水 開水 礦泉水",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無添加糖飲品可替換含糖飲料。",
+    "tip": "確認沒有另加糖漿；飲用量依個人計畫，不必為了紀錄多喝。",
+    "alt": "將含糖飲料改成無糖。",
+    "art": "food-27-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "無添加糖的飲品，不提供含糖飲料中的添加糖。",
+    "cautions": [
+      "限水者依計畫"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-27-2",
+    "name": "無糖茶",
+    "aliases": "綠茶 紅茶 烏龍茶 茶",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無添加糖飲品可替換含糖飲料。",
+    "tip": "確認沒有另加糖漿；飲用量依個人計畫，不必為了紀錄多喝。",
+    "alt": "將含糖飲料改成無糖。",
+    "art": "food-27-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "茶葉沖泡的飲品，通常含咖啡因，未另加糖時不含添加糖。",
+    "cautions": [
+      "咖啡因"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-27-3",
+    "name": "無糖黑咖啡",
+    "aliases": "黑咖啡 美式咖啡 咖啡",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無添加糖飲品可替換含糖飲料。",
+    "tip": "少加糖、奶精；對咖啡因敏感者調整飲用量。",
+    "alt": "將含糖飲料改成無糖。",
+    "art": "food-27-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "咖啡沖煮的飲品，通常含咖啡因，本身不含額外添加的糖與奶精。",
+    "cautions": [
+      "咖啡因"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-28-1",
+    "name": "低脂鮮奶／脫脂奶",
+    "aliases": "牛奶 鮮奶 低脂奶 脫脂奶 奶粉",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無加糖、低脂乳品可作為日常選項。",
+    "tip": "看成分及營養標示，按個人飲食計畫安排份量。",
+    "alt": "將含糖調味乳換成低脂無糖乳品。",
+    "art": "food-28-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "乳品提供蛋白質與鈣，低脂或脫脂款保留較少乳脂。",
+    "cautions": [
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-28-2",
+    "name": "低脂無糖優酪乳",
+    "aliases": "優酪乳 無糖優格 優格",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無加糖、低脂乳品可作為日常選項。",
+    "tip": "看成分及營養標示，按個人飲食計畫安排份量。",
+    "alt": "將含糖調味乳換成低脂無糖乳品。",
+    "art": "food-28-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "乳品提供蛋白質與鈣，低脂或脫脂款保留較少乳脂。",
+    "cautions": [
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-29-1",
+    "name": "無糖豆漿",
+    "aliases": "豆漿 豆奶",
+    "cat": "飲品",
+    "color": "green",
+    "why": "無糖豆漿提供植物性蛋白質。",
+    "tip": "確認無添加糖；豆漿與牛奶營養不同，鈣含量看標示。",
+    "alt": "含糖豆漿換成無糖豆漿。",
+    "art": "food-29-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "由豆類製成，提供植物性蛋白質；鈣含量依有無強化而異。",
+    "cautions": [
+      "鈣含量看標示"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-30-1",
+    "name": "全脂鮮奶",
+    "aliases": "全脂牛奶 全脂奶",
+    "cat": "飲品",
+    "color": "yellow",
+    "why": "全脂乳品的飽和脂肪較多，注意份量。",
+    "tip": "依個人計畫安排，日常可優先考慮低脂無糖款。",
+    "alt": "改選低脂鮮奶或脫脂奶，保留乳品的用途。",
+    "art": "food-30-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "保留乳脂的乳品，提供蛋白質、鈣與脂肪。",
+    "cautions": [
+      "飽和脂肪",
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-31-1",
+    "name": "含糖手搖飲",
+    "aliases": "奶茶 珍珠奶茶 手搖飲 手搖杯",
+    "cat": "飲品",
+    "color": "red",
+    "why": "添加糖容易增加，建議降低頻率。",
+    "tip": "從減糖開始，逐步改選無糖飲品。",
+    "alt": "茶飲選無糖，或先從少糖開始；奶茶可選無糖鮮奶茶，減少珍珠、糖漿等配料。",
+    "art": "food-31-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "飲品中的添加糖提供額外熱量，含量依配方與甜度而異。",
+    "cautions": [
+      "添加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-31-2",
+    "name": "可樂／汽水",
+    "aliases": "可樂 汽水 碳酸飲料",
+    "cat": "飲品",
+    "color": "red",
+    "why": "添加糖容易增加，建議降低頻率。",
+    "tip": "從減糖開始，逐步改選無糖飲品。",
+    "alt": "想保留氣泡口感時，可換成無加糖、無糖漿的氣泡水。",
+    "art": "food-31-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "飲品中的添加糖提供額外熱量，含量依配方與甜度而異。",
+    "cautions": [
+      "添加糖",
+      "留意磷添加物"
+    ],
+    "cautionNotes": [
+      "是否含磷添加物依產品而異，請查看成分表中的磷酸、磷酸鹽等名稱。有被交代限磷者，依照護團隊的計畫選擇。"
+    ]
+  },
+  {
+    "id": "food-31-3",
+    "name": "含糖豆漿",
+    "aliases": "甜豆漿 甜豆奶 豆漿",
+    "cat": "飲品",
+    "color": "red",
+    "why": "添加糖容易增加，建議降低頻率。",
+    "tip": "從減糖開始，逐步改選無糖飲品。",
+    "alt": "優先改選無糖豆漿；若一時不習慣，可先選少糖豆漿，再逐步減糖。",
+    "art": "food-31-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "飲品中的添加糖提供額外熱量，含量依配方與甜度而異。",
+    "cautions": [
+      "添加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-31-4",
+    "name": "調味乳／含糖優酪乳",
+    "aliases": "巧克力牛奶 調味乳 含糖優酪乳 乳酸飲料",
+    "cat": "飲品",
+    "color": "red",
+    "why": "添加糖容易增加，建議降低頻率。",
+    "tip": "留意營養標示中的糖含量與成分表的添加糖，優先改選低脂無糖乳品，份量依個人計畫。",
+    "alt": "調味乳換成低脂鮮奶；含糖優酪乳換成低脂無糖優酪乳，不習慣時可先選糖量較少的款式。",
+    "art": "food-31-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "乳品提供蛋白質與鈣，調味或含糖款另外加入糖或風味配料。",
+    "cautions": [
+      "添加糖",
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-32-1",
+    "name": "百分之百果汁",
+    "aliases": "果汁 柳橙汁 番茄汁 蘋果汁",
+    "cat": "飲品",
+    "color": "yellow",
+    "why": "果汁的纖維較少，較容易一次喝進多份水果。",
+    "tip": "即使無加糖也需控制份量；番茄汁另留意加鹽。",
+    "alt": "以完整水果替代果汁，例如柳橙汁改吃柳橙；口渴時另外喝水。",
+    "art": "food-32-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "榨汁後保留水果中的糖分，但通常比完整果肉少纖維。",
+    "cautions": [
+      "纖維較少",
+      "控制飲用量"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-33-1",
+    "name": "橄欖油／苦茶油",
+    "aliases": "橄欖油 苦茶油",
+    "cat": "油脂調味",
+    "color": "green",
+    "why": "液態植物油可替換部分奶油或豬油。",
+    "tip": "仍須控制總用油量，不反覆高溫油炸。",
+    "alt": "用適量液態植物油替換動物油脂。",
+    "art": "food-33-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "以不飽和脂肪為主的植物油；油脂本身的熱量密度高。",
+    "cautions": [
+      "熱量密度高",
+      "控制用油"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-33-2",
+    "name": "芥花油／大豆油／葵花油",
+    "aliases": "芥花油 菜籽油 大豆油 沙拉油 葵花油 植物油",
+    "cat": "油脂調味",
+    "color": "green",
+    "why": "液態植物油可替換部分奶油或豬油。",
+    "tip": "仍須控制總用油量，不反覆高溫油炸。",
+    "alt": "用適量液態植物油替換動物油脂。",
+    "art": "food-33-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "以不飽和脂肪為主的植物油；油脂本身的熱量密度高。",
+    "cautions": [
+      "熱量密度高",
+      "控制用油"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-34-1",
+    "name": "奶油／豬油",
+    "aliases": "奶油 牛油 豬油",
+    "cat": "油脂調味",
+    "color": "red",
+    "why": "飽和脂肪較多，建議減少使用。",
+    "tip": "控制份量，逐步以液態植物油替換。",
+    "alt": "炒菜或煎食時，以適量橄欖油、芥花油等液態植物油替換奶油或豬油。",
+    "art": "food-34-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要由脂肪組成，飽和脂肪比例較液態植物油高。",
+    "cautions": [
+      "飽和脂肪高",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-34-2",
+    "name": "椰子油／棕櫚油",
+    "aliases": "椰子油 棕櫚油",
+    "cat": "油脂調味",
+    "color": "red",
+    "why": "飽和脂肪較多，建議減少使用。",
+    "tip": "控制份量，逐步以液態植物油替換。",
+    "alt": "烹調用油改選橄欖油、芥花油等液態植物油，總用油量仍需控制。",
+    "art": "food-34-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要由脂肪組成，飽和脂肪比例較液態植物油高。",
+    "cautions": [
+      "飽和脂肪高",
+      "熱量密度高"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-35-1",
+    "name": "蔥／薑／蒜／辣椒",
+    "aliases": "蔥 薑 蒜 辣椒 辛香料",
+    "cat": "油脂調味",
+    "color": "green",
+    "why": "善用天然香氣，減少依賴鹽與濃醬。",
+    "tip": "以原味辛香料或無加糖醋調味；現成醬料仍要看標示。",
+    "alt": "用蔥、薑、蒜或少量醋增加風味。",
+    "art": "food-35-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "辛香料的香氣與風味來自食材本身，原味食材不等同調味醬。",
+    "cautions": [
+      "原味代替鹹醬"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-35-2",
+    "name": "白醋／烏醋",
+    "aliases": "白醋 烏醋 醋",
+    "cat": "油脂調味",
+    "color": "green",
+    "why": "善用天然香氣，減少依賴鹽與濃醬。",
+    "tip": "烏醋可能加鹽或糖，挑選配方單純者、少量使用。",
+    "alt": "用蔥、薑、蒜或少量醋增加風味。",
+    "art": "food-35-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "醋的酸味來自發酵；不同調味配方可能另外含鹽或糖。",
+    "cautions": [
+      "調味醋看鈉糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-36-1",
+    "name": "食鹽",
+    "aliases": "鹽 海鹽 岩鹽",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "看每份用量與營養標示，醬料另外放。",
+    "alt": "逐步減少加鹽量，用蔥、薑、蒜或香草增加香氣。",
+    "art": "food-36-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "主要成分是氯化鈉，是飲食中鈉的直接來源。",
+    "cautions": [
+      "高鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-36-2",
+    "name": "醬油／蠔油",
+    "aliases": "醬油 蠔油",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "看每份用量與營養標示，醬料另外放。",
+    "alt": "同類醬料比較鈉含量、選較低者，並減少用量；以蔥薑蒜補足風味。",
+    "art": "food-36-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "濃縮鹹味調味料，鈉含量受配方與使用量影響。",
+    "cautions": [
+      "高鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-36-3",
+    "name": "薄鹽醬油",
+    "aliases": "減鹽醬油 低鈉醬油",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "薄鹽不代表無鹽；部分產品含鉀鹽，腎病或限鉀者先確認。",
+    "alt": "即使選薄鹽款，也先減少用量或另外沾取；有被交代限鉀者先確認是否含鉀鹽。",
+    "art": "food-36-3",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "減少部分鈉的醬油產品，仍含鈉，是否添加鉀鹽依產品而異。",
+    "cautions": [
+      "仍含鈉",
+      "留意鉀鹽"
+    ],
+    "cautionNotes": [
+      "部分減鈉產品以鉀鹽替代食鹽。腎功能不佳、高血鉀或用藥會影響血鉀時，先確認是否適合。"
+    ]
+  },
+  {
+    "id": "food-36-4",
+    "name": "番茄醬／甜辣醬",
+    "aliases": "番茄醬 甜辣醬",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "看每份用量與營養標示，醬料另外放。",
+    "alt": "番茄醬可換成少鹽、無加糖的番茄泥；甜辣醬可改用新鮮辣椒搭配少量醋。",
+    "art": "food-36-4",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "含鹽或糖的調味醬，與原味番茄、辣椒的組成不同。",
+    "cautions": [
+      "鈉與添加糖"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-36-5",
+    "name": "小魚干／蝦米",
+    "aliases": "小魚乾 蝦米 魚乾",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "乾製海味可能含較多鈉，少量調味即可。",
+    "alt": "炒菜或煮湯時，可用新鮮魚肉、蝦仁替換乾製海味；增添香氣可用香菇或蔥薑。",
+    "art": "food-36-5",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "海鮮乾燥後水分減少，蛋白質、礦物質及原有調味較集中。",
+    "cautions": [
+      "留意鈉",
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-36-6",
+    "name": "起司／乳酪",
+    "aliases": "起司 乳酪 芝士",
+    "cat": "油脂調味",
+    "color": "yellow",
+    "why": "調味用少量即可，留意鈉與糖。",
+    "tip": "留意鈉與飽和脂肪，選較低脂、較低鈉款並控制份量。",
+    "alt": "夾吐司或做料理時，選同類中較低鈉、較低脂的起司，並減少用量。",
+    "art": "food-36-6",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "由乳品製成的濃縮食物，含蛋白質、鈣、磷及不同比例的脂肪。",
+    "cautions": [
+      "鈉與飽和脂肪",
+      "含天然磷"
+    ],
+    "cautionNotes": [
+      "此食物含天然磷。只有被照護團隊交代需要限磷的人，才需要依個人計畫留意份量。"
+    ]
+  },
+  {
+    "id": "food-37-1",
+    "name": "低鈉鹽",
+    "aliases": "鉀鹽 低鹽",
+    "cat": "油脂調味",
+    "color": "review",
+    "why": "低鈉鹽可能含鉀，不適合所有人。",
+    "tip": "腎功能不佳、高血鉀或用藥可能影響血鉀時，先請照護團隊確認。",
+    "alt": "先減少總用鹽量，以天然辛香料增加風味。",
+    "art": "food-37-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "部分產品以氯化鉀替代部分氯化鈉，因此減鈉可能同時增加鉀。",
+    "cautions": [
+      "留意鉀鹽"
+    ],
+    "cautionNotes": [
+      "部分減鈉產品以鉀鹽替代食鹽。腎功能不佳、高血鉀或用藥會影響血鉀時，先確認是否適合。"
+    ]
+  },
+  {
+    "id": "food-38-1",
+    "name": "菜湯",
+    "aliases": "蔬菜湯 青菜湯",
+    "cat": "湯品其他",
+    "color": "yellow",
+    "why": "湯底與調味影響鈉含量，不等同一份蔬菜。",
+    "tip": "少鹽清湯、少喝湯底，不以湯取代整份食材。",
+    "alt": "選新鮮蔬菜煮的少鹽清湯，少加湯塊，保留蔬菜一起吃。",
+    "art": "food-38-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "湯品含水分與溶入湯底的調味成分，濃度依食材、加鹽量與煮法而異。",
+    "cautions": [
+      "湯底鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-38-2",
+    "name": "火鍋湯",
+    "aliases": "火鍋 高湯 湯底",
+    "cat": "湯品其他",
+    "color": "yellow",
+    "why": "湯底與調味影響鈉含量，不等同一份蔬菜。",
+    "tip": "煮久後鈉等成分可能濃縮；少喝湯底、少用沙茶醬。",
+    "alt": "選少鹽清湯底，以蔬菜、菇類增添風味，少選濃湯底，也少喝煮久的湯。",
+    "art": "food-38-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "湯品含水分與溶入湯底的調味成分，濃度依食材、加鹽量與煮法而異。",
+    "cautions": [
+      "湯底鈉"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-39-1",
+    "name": "雞精／蜆精",
+    "aliases": "雞精 蜆精",
+    "cat": "湯品其他",
+    "color": "review",
+    "why": "補充品不等於一份完整食物，先確認需要。",
+    "tip": "成分與鈉含量依產品而異，不能取代均衡飲食或既有治療。",
+    "alt": "優先從日常食物安排營養，需要補充時詢問團隊。",
+    "art": "food-39-1",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "濃縮萃取或補充產品的配方各異，不能視為一份完整餐食。",
+    "cautions": [
+      "鈉含量看標示"
+    ],
+    "cautionNotes": []
+  },
+  {
+    "id": "food-39-2",
+    "name": "健素糖／酵母粉",
+    "aliases": "健素糖 酵母粉",
+    "cat": "湯品其他",
+    "color": "review",
+    "why": "補充品不等於一份完整食物，先確認需要。",
+    "tip": "成分與鈉含量依產品而異，不能取代均衡飲食或既有治療。",
+    "alt": "優先從日常食物安排營養，需要補充時詢問團隊。",
+    "art": "food-39-2",
+    "reviewStatus": "draft",
+    "basis": "ASCVD 編輯草案；品項範圍參考保腎護心工具",
+    "characteristic": "酵母相關食品或補充產品，營養與添加成分依產品而異。",
+    "cautions": [
+      "補充品先確認"
+    ],
+    "cautionNotes": []
+  }
+]

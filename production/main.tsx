@@ -1,3 +1,4 @@
+import {DietGuide} from './food-guide';
 import {Avatar,AvatarPicker,prepareAvatar} from './avatar';
 import {AdminAccounts} from './admin-accounts';
 import {StepLeaderboard,type StepRow} from './step-leaderboard';
@@ -63,7 +64,7 @@ function App(){
   return <div className={`prod-app ${data?.role==='patient'&&data.bound?'has-voyage-nav':''}`}>
     <header className="topbar home-topbar"><Button variant="ghost" className="home-brand" aria-label="豐原醫院健康航程首頁" onClick={()=>setView(data&&data.role!=='patient'?'admin':'home')}><img className="hospital-logo" src={import.meta.env.BASE_URL+'voyage/fengyuan-hospital-logo.png'} alt="豐原醫院" width="195" height="60"/><span className="hospital-brand-title">健康航程</span></Button>
     {data&&auth&&<DropdownMenu><DropdownMenuTrigger className="profile-trigger" aria-label="個人選單">{data.role!=='patient'?'管':<Avatar value={profile?.avatar}/>}</DropdownMenuTrigger><DropdownMenuContent className="profile-menu" align="end">
-      {data.role!=='patient'?<DropdownMenuItem onClick={()=>setView('admin')}><Shield/>管理後臺</DropdownMenuItem>:<><DropdownMenuItem onClick={()=>setView('home')}><Home/>首頁</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('history')}><CalendarDays/>健康紀錄</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('account')}><Settings/>我的帳號</DropdownMenuItem></>}
+      {data.role!=='patient'?<DropdownMenuItem onClick={()=>setView('admin')}><Shield/>管理後臺</DropdownMenuItem>:<><DropdownMenuItem onClick={()=>setView('home')}><Home/>首頁</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('diet')}><Utensils/>護心餐桌</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('history')}><CalendarDays/>健康紀錄</DropdownMenuItem><DropdownMenuItem onClick={()=>setView('account')}><Settings/>我的帳號</DropdownMenuItem></>}
       <DropdownMenuItem onClick={logout}><LogOut/>登出</DropdownMenuItem>
     </DropdownMenuContent></DropdownMenu>}</header>
     <main className="prod-content">
@@ -72,6 +73,7 @@ function App(){
       data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
       {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} leaderboard={<StepLeaderboard rows={rows} today={data.today} ownSteps={records.filter(r=>r.kind==='exercise'&&r.mode==='steps'&&r.date.startsWith(data.today.slice(0,7))).reduce((sum,r)=>sum+(r.value||0),0)} avatar={profile?.avatar} onEditAvatar={()=>navigate('account')} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/>} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
+      {view==='diet'&&<DietGuide records={records} today={data.today} onRecord={record=>setModal({kind:'meal',record})} onPhoto={photo} onBack={()=>navigate('home')}/>}
       {view==='journey'&&progress&&<VoyageJourney progress={progress}/>}
       {view==='achievements'&&progress&&<VoyageAchievements progress={progress}/>}
       {view==='history'&&<><TaskCalendar key={data.today} live today={data.today} exerciseDates={records.filter(r=>r.kind==='exercise').map(r=>r.date)} mealDates={records.filter(r=>r.kind==='meal').map(r=>r.date)} medicineDates={records.filter(r=>r.kind==='medicine'&&r.medicationComplete!==false).map(r=>r.date)} medicineDone={false} exerciseReady mealReady medicineReady/><section className="surface"><h1>健康紀錄</h1><RecordList records={records} onPhoto={photo} onEdit={r=>setModal({kind:r.kind,record:r})}/></section></>}
