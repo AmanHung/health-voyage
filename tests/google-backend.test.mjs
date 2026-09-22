@@ -116,7 +116,7 @@ test('invalid and inactive patient goals fail without writes; service advertises
   const stored=JSON.parse(row[5]);stored.active=false;row[5]=JSON.stringify(stored);
   assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps:3000,requestId:randomUUID()}).ok,false);
   assert.equal(JSON.parse(row[5]).activityGoals,undefined);
-  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard']);
+  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap']);
 });
 
 test('admin deletes the daily record without revealing older revisions; photos and audit survive',()=>{

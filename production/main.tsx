@@ -3,7 +3,6 @@ import {Avatar,AvatarPicker,prepareAvatar} from './avatar';
 import {AdminAccounts} from './admin-accounts';
 import {StepLeaderboard,type StepRow} from './step-leaderboard';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {createRoot} from 'react-dom/client';
 import {Compass,Footprints,Utensils,Pill,Home,Settings,CalendarDays,Shield,LogOut,Camera,Check,Trophy,ArrowLeft} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -12,8 +11,7 @@ import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/u
 import {DropdownMenu,DropdownMenuTrigger,DropdownMenuContent,DropdownMenuItem} from '@/components/ui/dropdown-menu';
 import {TaskCalendar} from '@/components/task-calendar';
 import {api,type Auth,type Bootstrap,type Profile,type AdminPatient,type RecordItem} from './api';
-import {config,configured} from './config';
-import {lineAuth,googleButton,signOut} from './auth';
+import {config} from './config';
 import {prepareImage,type PreparedImage} from './images';
 import {startExerciseReading} from './exercise-reader';
 import {MEDS} from '../google/domain.js';
@@ -37,24 +35,16 @@ function message(error:unknown){return error instanceof Error?error.message:'操
 function Choice({label,options,value,onChange}:{label:string;options:string[];value:string;onChange:(value:string)=>void}){
   return <fieldset><legend>{label}</legend><RadioGroup className="prod-choices" value={value} onValueChange={v=>onChange(String(v))} aria-label={label}>{options.map(option=><label className="prod-choice" key={option}><RadioGroupItem value={option}/><span>{option}</span></label>)}</RadioGroup></fieldset>;
 }
-function App(){
-  const [auth,setAuth]=useState<Auth|null>(null),[data,setData]=useState<Bootstrap|null>(null),[view,setView]=useState<View>('home');
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[adminLogin,setAdminLogin]=useState(false);
+export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;initialData:Bootstrap;onSignedOut:()=>void}){
+  const auth=initialAuth;const [data,setData]=useState<Bootstrap>(initialData),[view,setView]=useState<View>(initialData.role==='patient'?'home':'admin');
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
   const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<StepRow[]>([]),[rankError,setRankError]=useState('');
   const [celebration,setCelebration]=useState(0);
   const [rankLoading,setRankLoading]=useState(true),[rankRetry,setRankRetry]=useState(0);
-  const googleEl=useRef<HTMLDivElement>(null);const authEpoch=useRef(0);
-  async function login(identity:Auth){
-    const epoch=++authEpoch.current;setBusy(true);setError('');
-    try{const result=await api<Bootstrap>(identity,'bootstrap');if(epoch!==authEpoch.current)return;setAuth(identity);setData(result);setView(result.role!=='patient'?'admin':'home');}
-    catch(e){if(epoch===authEpoch.current)setError(message(e));}finally{if(epoch===authEpoch.current)setBusy(false);}
-  }
   async function refresh(){if(!auth)return;const result=await api<Bootstrap>(auth,'bootstrap');setData(result);}
-  useEffect(()=>{if(configured())lineAuth(false).then(identity=>{if(identity)void login(identity);}).catch(e=>setError(message(e)));},[]);
-  useEffect(()=>{if(adminLogin&&googleEl.current)googleButton(googleEl.current,identity=>void login(identity)).catch(e=>setError(message(e)));},[adminLogin]);
   useEffect(()=>{if(!auth||!data?.bound)return;let active=true;setRankError('');setRankLoading(true);api<{rows:typeof rows}>(auth,'leaderboard').then(r=>{if(active)setRows(r.rows);}).catch(()=>{if(active)setRankError('排行榜暫時無法讀取。');}).finally(()=>{if(active)setRankLoading(false);});return()=>{active=false;};},[auth,data,rankRetry]);
-  function logout(){authEpoch.current++;signOut();setAuth(null);setData(null);setRows([]);setImage(null);setModal(null);setAdminLogin(false);setNotice('');setError('');setBusy(false);}
+  function logout(){onSignedOut();}
   async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id});setImage(result.dataUrl);}catch(e){setError(message(e));}finally{setBusy(false);}}
   const records=data?.records||[],profile=data?.profile;
   const progress=data?voyageProgress(records,data.today):null;
@@ -69,8 +59,7 @@ function App(){
     </DropdownMenuContent></DropdownMenu>}</header>
     <main className="prod-content">
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
-      {!configured()?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><Shield aria-hidden/><h1>網站設定中</h1><p>尚未開放登入與上傳。</p><p>服務準備完成後，即可開始使用。</p></section>:!auth||!data?<section className="surface prod-login"><img className="voyage-login-art" src={import.meta.env.BASE_URL+'voyage/coast.webp'} alt="海鳥陪伴帆船展開航程"/><span className="voyage-eyebrow">歡迎來到健康航程</span><h1>為自己，踏出今天的一步</h1><p>記下運動、飲食與用藥，<br/>把每天的努力，變成自己的航程。</p><Button disabled={busy} onClick={()=>{setBusy(true);lineAuth(true).then(identity=>{if(identity)return login(identity);}).catch(e=>setError(message(e))).finally(()=>setBusy(false));}}>{busy?'登入中…':'用 LINE 開始航程'}</Button><Button variant="ghost" onClick={()=>setAdminLogin(v=>!v)}>管理員登入</Button>{adminLogin&&<div ref={googleEl}/>}</section>:
-      data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
+      {data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
       {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} leaderboard={<StepLeaderboard rows={rows} today={data.today} ownSteps={records.filter(r=>r.kind==='exercise'&&r.mode==='steps'&&r.date.startsWith(data.today.slice(0,7))).reduce((sum,r)=>sum+(r.value||0),0)} avatar={profile?.avatar} onEditAvatar={()=>navigate('account')} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/>} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/></VoyageHome>}
       {view==='diet'&&<DietGuide records={records} today={data.today} onRecord={record=>setModal({kind:'meal',record})} onPhoto={photo} onBack={()=>navigate('home')}/>}
@@ -155,4 +144,3 @@ function Admin({auth,email,today,onError,onPhoto}:{auth:Auth;email:string;today:
     <AdminDirectory auth={auth} today={today} patients={patients} onPatientChanged={patient=>setPatients(current=>current.map(p=>p.id===patient.id?patient:p))} onReload={load} onPhoto={onPhoto}/>
   </>;
 }
-const root=document.getElementById('root');if(root)createRoot(root).render(<App/>);

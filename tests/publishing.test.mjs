@@ -10,7 +10,7 @@ test('public Pages publishing remains explicitly enabled and follows validation'
 });
 
 test('publishing an unconfigured site does not open login or patient enrollment', () => {
-  const frontend = readFileSync('production/main.tsx', 'utf8');
+  const frontend = readFileSync('production/login.tsx', 'utf8');
   const backend = readFileSync('google/backend.js', 'utf8');
   assert.match(frontend, /!configured\(\)\?/);
   assert.match(frontend, /網站設定中/);

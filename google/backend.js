@@ -19,14 +19,17 @@ function sheet(name) {
   need(s, '資料表尚未準備完成。'); return s;
 }
 function read(name, patientId) {
-  const s = name==='MedicationPlans'?SpreadsheetApp.openById(config('RECORD_SHEET_ID')).getSheetByName(name):sheet(name); if (!s || s.getLastRow() < 2) return [];
+  const s = name==='MedicationPlans'?SpreadsheetApp.openById(config('RECORD_SHEET_ID')).getSheetByName(name):sheet(name); if (!s) return [];
+  const lastRow=s.getLastRow();if(lastRow<2)return [];
   // This prototype is deliberately bounded; fail instead of silently dropping records.
-  need(s.getLastRow() <= 25000, '資料量已達試用上限，請管理員安排升級。');
+  need(lastRow <= 25000, '資料量已達試用上限，請管理員安排升級。');
   if(patientId){
-    const ids=s.getRange(2,2,s.getLastRow()-1,1).getValues();
-    return ids.flatMap((r,i)=>r[0]===patientId?[{...JSON.parse(s.getRange(i+2,SCHEMAS[name].length,1,1).getValues()[0][0]),_row:i+2}]:[]);
+    // One Sheets round trip, instead of one round trip per matching record.
+    // Filter by the authenticated patient's ID before parsing or returning data.
+    const width=SCHEMAS[name].length-1;
+    return s.getRange(2,2,lastRow-1,width).getValues().flatMap((r,i)=>r[0]===patientId?[{...JSON.parse(r[width-1]),_row:i+2}]:[]);
   }
-  return s.getRange(2, SCHEMAS[name].length, s.getLastRow()-1, 1).getValues().map((r, i) => ({ ...JSON.parse(r[0]), _row: i + 2 }));
+  return s.getRange(2, SCHEMAS[name].length, lastRow-1, 1).getValues().map((r, i) => ({ ...JSON.parse(r[0]), _row: i + 2 }));
 }
 function columns(name, row) {
   const data = {...row}; delete data._row;
@@ -331,7 +334,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:6,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:7,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

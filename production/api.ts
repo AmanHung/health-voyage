@@ -9,8 +9,9 @@ export type RecordItem = {id:string;patientId:string;date:string;kind:'exercise'
 export type Bootstrap = {role:'admin'|'patient'|'pharmacist';today:string;bound?:boolean;profile?:Profile;records?:RecordItem[];email?:string;patients?:{id:string;name:string}[]};
 // Cross-origin simple POST: don't use no-cors/JSONP or put credentials in a URL.
 // A blocked response is a failure, never interpreted as a successful write.
-export async function api<T>(auth:Auth,action:string,payload:unknown={}):Promise<T> {
-  const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),45000);
+export async function api<T>(auth:Auth,action:string,payload:unknown={},signal?:AbortSignal):Promise<T> {
+  const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),action==='bootstrap'?30000:45000);
+  const cancel=()=>abort.abort();signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
   try {
     const response=await fetch(config.apiUrl,{method:'POST',redirect:'follow',credentials:'omit',referrerPolicy:'no-referrer',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({auth,action,payload}),signal:abort.signal});
     if(!response.ok)throw new Error('服務暫時無法使用，請稍後再試。');
@@ -18,7 +19,7 @@ export async function api<T>(auth:Auth,action:string,payload:unknown={}):Promise
     if(!result.ok)throw new Error(result.error||'儲存失敗，請再試一次。');
     return result.data;
   } catch(error) {
-    if(error instanceof TypeError || (error as Error).name==='AbortError')throw new Error('未能確認儲存結果，請保留畫面並重試。');
+    if(error instanceof TypeError || (error as Error).name==='AbortError')throw new Error(action==='bootstrap'?'登入資料讀取逾時或網路中斷，請重試登入。':'未能確認儲存結果，請保留畫面並重試。');
     throw error;
-  } finally {clearTimeout(timer);}
+  } finally {clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
 }
