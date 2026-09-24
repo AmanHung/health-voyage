@@ -91,7 +91,7 @@ function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
   need(p && p.active && !p.deletedAt, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,checkinDays:p.checkinDays||[],activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
 function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,leaderboardVersion:p.leaderboardVersion||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
 function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
 function visibleRecordIds(records) {
@@ -164,6 +164,19 @@ export function dispatch(action, payload, identity) {
     });
   }
   if(action.startsWith('medication.')||action==='admin.medicationStaff')return medication.dispatch(action,payload,identity,today);
+  if(action==='checkin') {
+    need(identity.role==='patient','只有個案可以簽到。');
+    return locked(()=>{
+      const p=person(identity),date=dayKey();
+      const days=p.checkinDays||[];
+      if(!days.includes(date)){
+        p.checkinDays=[...days,date];
+        write('Patients',p,p._row);
+        audit(identity.subject,'patient.checkin',p.id,{date});
+      }
+      return {profile:publicPerson(p),today:date};
+    });
+  }
   if (action === 'bootstrap') {
     if (identity.role === 'admin') return {role:'admin', email:identity.email, today};
     const p = read('Patients').find(x=>x.subject===identity.subject);
@@ -334,7 +347,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:7,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:8,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

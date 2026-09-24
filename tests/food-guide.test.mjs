@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import {build} from 'esbuild';
-const {outputFiles}=await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import {FoodDetail,FoodSearch,DietGuide} from './production/food-guide';export * from './lib/food-guide';export const detail=food=>renderToStaticMarkup(<FoodDetail food={food}/>);export const search=()=>renderToStaticMarkup(<FoodSearch/>);export const hub=props=>renderToStaticMarkup(<DietGuide onRecord={()=>{}} onPhoto={()=>{}} onBack={()=>{}} {...props}/>);`,loader:'tsx',resolveDir:process.cwd()},define:{'import.meta.env.BASE_URL':'"/health-voyage/"'},loader:{'.css':'empty'},bundle:true,write:false,platform:'node',format:'cjs'});
+const {outputFiles}=await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import {FoodDetail,FoodSearch,DietGuide} from './production/food-guide';export * from './lib/food-guide';export const detail=food=>renderToStaticMarkup(<FoodDetail food={food}/>);export const search=()=>renderToStaticMarkup(<FoodSearch/>);export const hub=props=>renderToStaticMarkup(<DietGuide onRecord={()=>{}} onPhoto={()=>{}} onBack={()=>{}} {...props}/>);`,loader:'tsx',resolveDir:process.cwd()},define:{'import.meta.env':'{}','import.meta.env.BASE_URL':'"/health-voyage/"'},loader:{'.css':'empty'},bundle:true,write:false,platform:'node',format:'cjs'});
 const compiled={exports:{}};new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
 const {foods,findFoods,mealWeek,currentMeals,detail,search,hub}=compiled.exports;
 test('approved catalog assets, aliases and red-yellow-gray-green order survive integration',()=>{
@@ -27,5 +27,5 @@ test('weekly review uses current records only, deduplicates revisions and handle
   const record=(id,date,createdAt,extra={})=>({id,date,createdAt,kind:'meal',patientId:'synthetic',hasImage:true,...extra});
   const records=[record('old','2026-08-31','2026-08-31T01:00:00Z'),record('new','2026-08-31','2026-08-31T02:00:00Z'),record('tue','2026-09-01','2026-09-01'),record('prior','2026-08-30','2026-08-30'),record('future','2026-09-03','2026-09-03'),record('deleted','2026-09-02','2026-09-02',{deletedAt:'2026-09-02'}),record('walk','2026-09-02','2026-09-02',{kind:'exercise'})];
   const week=mealWeek(records,'2026-09-02');assert.equal(week.days[0],'2026-08-31');assert.equal(week.days[6],'2026-09-06');assert.equal(week.recordedDays,2);assert.deepEqual(week.meals.map(r=>r.id),['tue','new']);assert.equal(currentMeals(records,'2026-09-02').length,3);assert.equal(records.length,7);
-  const empty=hub({records:[],today:'2026-09-21',initialPage:'week'});assert.match(empty,/已留下 0 天/);assert.match(empty,/這週尚未/);assert.doesNotMatch(empty,/示範週報|5 天/);
+  const empty=hub({records:[],today:'2026-09-21',initialPage:'week'});assert.match(empty,/今天尚無飲食紀錄/);assert.match(empty,/展開月曆/);assert.doesNotMatch(empty,/示範週報|5 天/);
 });

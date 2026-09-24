@@ -1,3 +1,4 @@
+import {nearestAchievement} from './journey-features';
 import { useState } from 'react';
 import { Check, ChevronRight, Lock, Sparkles } from 'lucide-react';
 import {
@@ -25,15 +26,13 @@ export function AchievementGallery({ progress }: { progress: VoyageProgress }) {
       ? collections.find((s) => s.id === selection.id)
       : null,
     medal = chosen && selection ? chosen.tiers[selection.tier] : null;
-  const closest = collections
-    .filter((s) => s.next)
-    .sort((a, b) => b.value / b.next!.goal - a.value / a.next!.goal)[0];
+  const closest = nearestAchievement(collections);
   return (
     <div className="achievement-gallery">
       <header className="collection-hero">
         <div className="collection-hero-copy">
           <span className="voyage-eyebrow">健康航程 · 成就收藏館</span>
-          <h1>把日常，收藏成光</h1>
+          <h1><span>把日常，</span><span>收藏成光</span></h1>
           <p>每一份記錄，都讓下一枚徽章更近一點。</p>
           <div className="collection-count">
             <strong>
@@ -55,9 +54,9 @@ export function AchievementGallery({ progress }: { progress: VoyageProgress }) {
         <div className="collection-next">
           <Sparkles aria-hidden />
           <div>
-            <strong>下一枚值得期待：{closest.next!.name}</strong>
+            <strong>最接近的下一枚：{closest.next!.name}</strong>
             <span>
-              再累積 {(closest.next!.goal - closest.value).toLocaleString()}{' '}
+              已完成 {Math.round(closest.value/closest.next!.goal*100)}％・再累積 {(closest.next!.goal - closest.value).toLocaleString()}{' '}
               {closest.unit}，解鎖{closest.next!.metal}徽章
             </span>
           </div>
@@ -208,7 +207,7 @@ function Series({
             aria-label={`${t.metal}級，${t.name}，累積 ${t.goal} ${series.unit}，${t.earned ? '已解鎖' : '未解鎖'}`}
           >
             <BadgeArt series={series.id} tier={t.index} locked={!t.earned} />
-            <span>{t.metal}</span>
+
             <small>{t.goal.toLocaleString()}</small>
             <i>
               {t.earned ? (

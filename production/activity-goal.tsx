@@ -8,19 +8,16 @@ import {api,type Auth,type Profile,type RecordItem} from './api';
 const number=(value:number)=>value.toLocaleString('zh-TW');
 function goalText(goal:ActivityGoal|null) {return !goal?'尚未設定':goal.steps===null?'暫停步數目標':`每日 ${number(goal.steps)} 步`;}
 export function ActivityGoalCard({history=[],records,today,onRecord}:{history?:ActivityGoal[];records:RecordItem[];today:string;onRecord:()=>void}) {
-  const p=activityProgress(records,history,today),day=p.today;
+  const p=activityProgress(records,[{id:"default-5000",steps:5000,effectiveFrom:"1970-01-01"},...history],today),day=p.today;
   const headline=day.achieved?'今天的目標，達成了':!p.current?'找到適合自己的步調':p.current.steps===null?'這段時間，照自己的步調':day.steps===null?'今天，從一份紀錄開始':'每一步，都在向前';
   return <section className={`activity-card ${day.achieved?'achieved':''}`} aria-label="我的活動目標">
     <div className="activity-ring" style={{'--activity-progress':`${day.percent*3.6}deg`} as CSSProperties} role="img" aria-label={p.current?.steps?`今日步數目標進度 ${day.percent}％${day.steps===null?'，尚無步數紀錄':''}`:'尚未啟用步數目標'}><div><Footprints aria-hidden/><strong>{day.steps===null?'—':number(day.steps)}</strong><span>{day.steps===null?'尚無步數紀錄':'今日已記錄步數'}</span></div></div>
-    <div className="activity-copy"><span className="voyage-eyebrow"><Target aria-hidden/>我的活動目標</span><h2>{headline}</h2><p>{p.current?.steps?<>與照護團隊約定：<strong>每天 {number(p.current.steps)} 步</strong></>:p.current?'目前暫停步數目標，仍可留下活動紀錄。':'先和照護團隊討論，再設定適合您的活動目標。'}</p>
+    <div className="activity-copy"><span className="voyage-eyebrow"><Target aria-hidden/>我的活動目標</span><h2>{headline}</h2><p>{p.current?.steps?<>{p.current.id==="default-5000"?"預設每日目標：":"與照護團隊約定："}<strong>每天 {number(p.current.steps)} 步</strong></>:p.current?'目前暫停步數目標，仍可留下活動紀錄。':'先和照護團隊討論，再設定適合您的活動目標。'}</p>
       {p.current?.steps&&<p className="activity-encouragement">{day.achieved?'今天的努力已留下，不必為了數字再加量。':day.steps!==null?`已記錄 ${number(day.steps)} 步，依自己的狀況繼續。`:'上傳截圖，核對並保存今天的步數。'}</p>}
       {p.upcoming&&<p className="activity-upcoming">{p.upcoming.effectiveFrom.replaceAll('-','／')} 起：{goalText(p.upcoming)}</p>}
-      <Button variant="outline" onClick={onRecord}>{day.recorded?'查看今日活動':'記錄今日活動'}<ArrowRight aria-hidden/></Button>
+
     </div>
-    <div className="activity-week"><div className="activity-week-heading"><span>本週目標足跡</span><strong>{p.achievedDays} 天達標</strong></div><div className="activity-week-days">{p.week.map(d=>{
-      const label=d.future?'尚未到':d.achieved?'步數目標達成':!d.goal?'尚未設定目標':d.goal.steps===null?'暫停目標':d.steps===null?'尚無步數紀錄':'已記錄，尚未達標';
-      return <div key={d.date} className={d.future?'future':d.achieved?'achieved':d.steps!==null?'recorded':''} aria-label={`${d.date}，${label}`}><span>{d.label}</span><i>{d.achieved?<Check aria-hidden/>:d.future?Number(d.date.slice(-2)):d.steps!==null?'●':'—'}</i></div>;
-    })}</div><p>勾選代表當日步數達標。紀錄日另計入航程。</p></div>
+
   </section>;
 }
 

@@ -11,8 +11,8 @@ const {outputFiles}=await build({
     export const home=renderToStaticMarkup(<VoyageHome nickname="測試旅人" records={[]} progress={p} onTask={()=>{}} onNavigate={()=>{}}/>);
     export const journey=renderToStaticMarkup(<VoyageJourney progress={p}/>);
     export const achievements=renderToStaticMarkup(<VoyageAchievements progress={p}/>);
-    export const navigation=renderToStaticMarkup(<VoyageNavigation view="history" onNavigate={()=>{}}/>);`,loader:'tsx',resolveDir:process.cwd()},
-  loader:{'.css':'empty'},bundle:true,write:false,platform:'node',format:'cjs',define:{'import.meta.env.BASE_URL':'"/health-voyage/"'},
+    export const navigation=renderToStaticMarkup(<VoyageNavigation view="journey" onNavigate={()=>{}}/>);`,loader:'tsx',resolveDir:process.cwd()},
+  loader:{'.css':'empty'},bundle:true,write:false,platform:'node',format:'cjs',define:{'import.meta.env':'{}','import.meta.env.BASE_URL':'"/health-voyage/"'},
 });
 const compiled={exports:{}};
 new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
@@ -32,7 +32,7 @@ test('map and awards explain participation without inventing treatment success',
 });
 test('navigation provides labelled destinations and keeps history under My account',()=>{
   assert.match(html.navigation,/aria-label="主要導覽"/);
-  for(const name of ['今日','航程','成就','我的'])assert.match(html.navigation,new RegExp(name));
+  for(const name of ['每日任務','運動足跡','護心餐桌','健康航程','成就收藏'])assert.match(html.navigation,new RegExp(name));
   assert.equal((html.navigation.match(/aria-current="page"/g)||[]).length,1);
-  assert.match(html.navigation,/aria-current="page"[^]*?<span>我的<\/span>/);
+  assert.match(html.navigation,/aria-current="page"[^]*?<span>健康航程<\/span>/);
 });

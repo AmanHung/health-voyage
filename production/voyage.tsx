@@ -1,3 +1,4 @@
+import {DailyCheckin,nearestAchievement,ShellSummary,useShells,RecordCalendar} from './journey-features';
 import {AchievementGallery} from './achievement-gallery';
 import {achievementCollections} from '../lib/achievements';
 import {BadgeArt} from './badge-art';
@@ -8,7 +9,7 @@ import {Progress} from '@/components/ui/progress';
 import {PORTS,type VoyageProgress} from '@/lib/voyage';
 import type {RecordItem} from './api';
 
-export type PatientView='home'|'journey'|'achievements'|'account'|'history'|'diet';
+export type PatientView='home'|'exercise'|'journey'|'achievements'|'account'|'history'|'diet';
 const base=import.meta.env.BASE_URL;
 const tasks=[
   {kind:'exercise',Icon:Footprints,title:'運動紀錄',detail:'記下今天走過的每一步',action:'記錄步數'},
@@ -23,17 +24,16 @@ export function WeeklyProgress({progress}:{progress:VoyageProgress}) {
   </div>;
 }
 export function VoyageHome({nickname,progress,records,onTask,onNavigate,children,leaderboard}:{nickname:string;progress:VoyageProgress;records:RecordItem[];onTask:(kind:RecordItem['kind'],record?:RecordItem)=>void;onNavigate:(view:PatientView)=>void;children?:ReactNode;leaderboard?:ReactNode}) {
-  const today=progress.today;
-  const nextBadge=achievementCollections(progress).filter(s=>s.next).sort((a,b)=>b.value/b.next!.goal-a.value/a.next!.goal)[0];
+  const today=progress.today;const shells=useShells(records,today);
+  const nextBadge=nearestAchievement(achievementCollections(progress));
   return <>
     <div className="voyage-greeting"><span><Sun aria-hidden/>{nickname}，您好</span><span>{Number(today.slice(5,7))} 月 {Number(today.slice(8))} 日</span></div>
-    <div className="voyage-home-grid"><section className="voyage-hero"><img src={base+'voyage/coast.webp'} alt="" width="1536" height="512" fetchPriority="high"/><div className="voyage-hero-copy"><span className="voyage-eyebrow">豐原醫院・藥劑科</span><h1>每天一步，<br className="voyage-mobile-break"/>健康同行</h1><p>記下運動、飲食與用藥。</p></div><div className="voyage-hero-status"><Ship aria-hidden/><span>{progress.currentPort?`已抵達${progress.currentPort.name}`:'準備啟程'}<strong>累積 {progress.totalDays} 個紀錄日</strong></span></div></section>
+    <div className="voyage-home-grid"><section className="voyage-hero"><img src={base+'voyage/coast.webp'} alt="" width="1536" height="512" fetchPriority="high"/><div className="voyage-hero-copy"><span className="voyage-eyebrow">豐原醫院・藥劑科</span><h1>每天一步，<br className="voyage-mobile-break"/>健康同行</h1><p>記下運動、飲食與用藥。</p></div><div className="voyage-hero-status"><Ship aria-hidden/><span>{shells.current?`已抵達${shells.current.name}`:'準備啟程'}<strong>已收藏 {shells.total} 顆貝殼</strong></span></div></section>
     <section className="voyage-today" aria-label="今日三項任務"><div className="voyage-section-heading"><h2>今天的健康任務</h2><span>{progress.todayCount}／3 已記錄</span></div><div className="voyage-task-list">{tasks.map(({kind,title,detail,action})=>{const record=records.find(r=>r.date===today&&r.kind===kind);return <Button key={kind} variant="outline" className={`voyage-task ${kind} ${record&&record.medicationComplete!==false?'recorded':''}`} onClick={()=>onTask(kind,record)}><span className={`voyage-task-art art-${kind}`} aria-hidden="true"/><span className="voyage-task-text"><strong>{title}</strong><span>{record?.medicationComplete===false?record.status:record?'已記錄，點此查看或修改':detail}</span><small className="voyage-task-state">{record?.medicationComplete===false?'尚待完成回報':record?'已記錄':'尚未記錄'}</small></span><span className="voyage-task-action">{record?.medicationComplete===false?<span>繼續回報</span>:record?<><Check aria-hidden/><span>已記錄</span></>:<><span>{action}</span><ChevronRight aria-hidden/></>}</span></Button>;})}</div></section></div>
-    <button className="voyage-scenic-summary" onClick={()=>onNavigate('journey')}><span><span className="voyage-eyebrow">我的健康航程</span><strong>累積記錄 {progress.totalDays} 天</strong><span>{progress.nextPort?`下一站：${progress.nextPort.name}`:'繼續收藏每一天的足跡'}</span></span><span className="voyage-summary-route" aria-hidden="true"><Ship/><span/><Anchor/><span/><Flag/></span><span className="voyage-summary-link">看看航程<ArrowRight aria-hidden/></span></button>
-    <button className="diet-home-entry" onClick={()=>onNavigate('diet')}><Utensils aria-hidden/><span><strong>護心餐桌</strong><span>查食物燈號、記下一餐、回顧飲食紀錄</span></span><ChevronRight aria-hidden/></button>
+    <RecordCalendar kind="tasks" records={records} today={today}/><DailyCheckin/>
     {children}
-    {nextBadge&&<button className="collection-home-teaser" onClick={()=>onNavigate('achievements')}><BadgeArt series={nextBadge.id} tier={nextBadge.next!.index}/><span><small>下一枚收藏</small><strong>{nextBadge.next!.name}</strong><span>再累積 {(nextBadge.next!.goal-nextBadge.value).toLocaleString()} {nextBadge.unit}，讓收藏更豐富</span></span><ChevronRight aria-hidden/></button>}
-    <div className="voyage-home-bottom"><WeeklyProgress progress={progress}/>{leaderboard}</div>
+    {nextBadge&&<button className="collection-home-teaser" onClick={()=>onNavigate('achievements')}><BadgeArt series={nextBadge.id} tier={nextBadge.next!.index}/><span><small>最接近的下一枚收藏</small><strong>{nextBadge.next!.name}</strong><span>已完成 {Math.round(nextBadge.value/nextBadge.next!.goal*100)}％・再累積 {(nextBadge.next!.goal-nextBadge.value).toLocaleString()} {nextBadge.unit}，讓收藏更豐富</span></span><ChevronRight aria-hidden/></button>}
+    <ShellSummary records={records} today={today} onNavigate={onNavigate}/>
   </>;
 }
 export function VoyageJourney({progress}:{progress:VoyageProgress}) {
@@ -43,6 +43,6 @@ export function VoyageAchievements({progress}:{progress:VoyageProgress}) {
   return <AchievementGallery progress={progress}/>;
 }
 export function VoyageNavigation({view,onNavigate}:{view:PatientView;onNavigate:(view:PatientView)=>void}) {
-  return <nav className="voyage-navigation" aria-label="主要導覽">{([{id:'home',label:'今日',Icon:Home},{id:'journey',label:'航程',Icon:Map},{id:'achievements',label:'成就',Icon:Star},{id:'account',label:'我的',Icon:UserRound}] as const).map(({id,label,Icon})=><Button key={id} variant="ghost" aria-current={(view===id||id==='account'&&view==='history')?'page':undefined} onClick={()=>onNavigate(id)}><Icon aria-hidden/><span>{label}</span></Button>)}</nav>;
+  return <nav className="voyage-navigation" aria-label="主要導覽">{([{id:'home',label:'每日任務',Icon:Home},{id:'exercise',label:'運動足跡',Icon:Footprints},{id:'diet',label:'護心餐桌',Icon:Utensils},{id:'journey',label:'健康航程',Icon:Map},{id:'achievements',label:'成就收藏',Icon:Star}] as const).map(({id,label,Icon})=><Button key={id} variant="ghost" aria-current={(view===id)?'page':undefined} onClick={()=>onNavigate(id)}><Icon aria-hidden/><span>{label}</span></Button>)}</nav>;
 }
 export function HistoryLink({onClick}:{onClick:()=>void}){return <Button variant="outline" className="voyage-history-link" onClick={onClick}><CalendarDays aria-hidden/><span>查看健康紀錄與月曆</span><ChevronRight aria-hidden/></Button>;}
