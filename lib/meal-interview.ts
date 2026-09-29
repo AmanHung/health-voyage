@@ -48,7 +48,7 @@ export function mealQuestionKeys(type:MealType):MealQuestionKey[]{
   if(processedMeals.has(type))keys.push('processedFood');
   keys.push('eaten');
   if(type!=='水果')keys.push('drink');
-  keys.push('restrictedDiet');
+
   return keys;
 }
 
@@ -84,9 +84,13 @@ export function mealInterviewComplete(a:MealInterview){
   return mealQuestionKeys(a.mealType).every(key=>key==='restrictedDiet'?a.restrictedDiet!==null:Boolean(a[key]));
 }
 
-export function questionLabel(key:MealQuestionKey,name:string){
+export function questionLabel(key:MealQuestionKey,name:string,type?:MealType|''){
+  if(key==='stapleAmount'&&type==='漢堡／三明治')return '這份漢堡或三明治的麵包，約相當於多少主食？';
+  if(key==='portionSize'&&type==='水果')return '這次水果原本準備多少份量？';
+  if(key==='portionSize'&&type==='飲料')return '這杯飲料原本是什麼大小？';
+  if(key==='drink'&&type==='飲料')return '這杯飲料有加糖嗎？';
   const labels:Record<MealQuestionKey,string>={
-    cookingMethod:`${name||'主餐'}主要怎麼料理？`,stapleAmount:'飯、麵或麵包有多少？',vegetableAmount:'蔬菜大約有幾份？',proteinAmount:'肉、魚、蛋或豆腐有多少？',soupAmount:'這餐喝了多少湯？',sideDish:'漢堡旁邊有什麼配餐？',portionSize:'原本是哪種份量？',processedFood:'有香腸、火腿、培根或丸餃嗎？',eaten:'最後吃了多少？',drink:'這餐喝什麼？',restrictedDiet:'照護團隊有交代飲食限制嗎？'
+    cookingMethod:`${name||'主餐'}主要怎麼料理？`,stapleAmount:'飯、麵或麵包有多少？',vegetableAmount:'蔬菜大約有幾份？',proteinAmount:'肉、魚、蛋或豆腐有多少？',soupAmount:'這餐喝了多少湯？',sideDish:'漢堡或三明治有搭配什麼？',portionSize:'原本是哪種份量？',processedFood:'有香腸、火腿、培根或丸餃嗎？',eaten:'最後吃了多少？',drink:'這餐喝什麼？',restrictedDiet:'照護團隊有交代飲食限制嗎？'
   };return labels[key];
 }
 

@@ -18,7 +18,7 @@ const html=compiled.exports;
 test('saved meals expose individual edit controls, including period and type',()=>{
   assert.match(html.review,/確認這一餐/);assert.doesNotMatch(html.review,/重新回答/);
   assert.match(html.review,/aria-label="修改：餐別"/);assert.match(html.review,/aria-label="修改：餐點類型"/);
-  assert.equal((html.review.match(/aria-label="修改：/g)||[]).length,5);
+  assert.equal((html.review.match(/aria-label="修改：/g)||[]).length,4);
   assert.match(html.review,/一般份量/);
 });
 test('photo is still required; slow recognition offers an explicit manual alternative',()=>{

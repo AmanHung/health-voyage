@@ -72,3 +72,11 @@
 @media(max-width:390px){.spaced-map .route-current-label{top:68px}.spaced-map .route-current::after{height:61px}}
 .dock-stop{fill:#e5eef0;stroke:#547b7b;stroke-width:.45}.dock-stop.reached{fill:var(--journey-lit);stroke:#27785c}
 .route-docked{position:absolute;bottom:22px;left:8px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;color:#ffe6a2;text-shadow:0 1px 3px #124939}
+
+/* Keep the live shell total beside the ship; no connector through the island. */
+.spaced-map .route-current::after{content:none}
+.spaced-map .route-current-label{left:50px;top:35px}
+@media(max-width:390px){.spaced-map .route-current-label{left:43px;top:32px}}
+.rc-feedback{margin-top:20px;padding-top:18px;border-top:1px solid #cbded2;color:#195d48}.rc-feedback h4{font-size:18px;margin:0 0 8px}.rc-feedback p{margin:0;line-height:1.8}
+.meal-question-hint{color:#587367;font-size:16px;line-height:1.7;margin:0 0 20px}
+@media(max-width:390px){.spaced-map .route-boat{left:-12px}.spaced-map .route-current-label{left:28px}}

@@ -38,7 +38,7 @@ export function validateRecord(input, today) {
     requireValue(!input.groups.includes('不確定') || input.groups.length === 1, '不確定不能與其他類別一起選。');
     requireValue(['全部', '約一半', '少量', '不確定'].includes(input.eaten), '請選擇吃了多少。');
     requireValue(['無飲料', '無糖', '含糖', '不確定'].includes(input.drink), '請選擇飲料。');
-    requireValue(typeof input.restrictedDiet === 'boolean', '請確認飲食限制。');
+    requireValue((input.restrictedDiet===null&&input.mealDetails!=null)||typeof input.restrictedDiet === 'boolean', '請確認飲食限制。');
     let mealDetails;
     if(input.mealDetails!=null){
       const m=input.mealDetails;
@@ -46,7 +46,7 @@ export function validateRecord(input, today) {
       const options={cookingMethod:COOKING_METHODS,stapleAmount:STAPLE_AMOUNTS,vegetableAmount:VEGETABLE_AMOUNTS,proteinAmount:PROTEIN_AMOUNTS,soupAmount:SOUP_AMOUNTS,sideDish:SIDES,portionSize:PORTION_SIZES,processedFood:PROCESSED_FOOD,eaten:INTERVIEW_EATEN,drink:INTERVIEW_DRINKS};
       const cleaned={mealType:m.mealType,mealName:cleanText(m.mealName,1,40,'餐點名稱'),cookingMethod:'',stapleAmount:'',vegetableAmount:'',proteinAmount:'',soupAmount:'',sideDish:'',portionSize:'',processedFood:'',eaten:'',drink:'',restrictedDiet:m.restrictedDiet,source:m.source,modelSuggestion:typeof m.modelSuggestion==='string'?m.modelSuggestion.trim().slice(0,40):''};
       requireValue(['model-confirmed','patient-entered','patient-selected'].includes(m.source),'餐點確認來源不正確。');
-      requireValue(typeof m.restrictedDiet==='boolean','請確認飲食限制。');
+      requireValue(m.restrictedDiet===null||typeof m.restrictedDiet==='boolean','請確認飲食限制。');
       for(const key of Object.keys(options)){
         const value=typeof m[key]==='string'?m[key]:'';
         requireValue(value===''||options[key].includes(value),`請確認${key}。`);cleaned[key]=value;
