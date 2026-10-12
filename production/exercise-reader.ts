@@ -30,6 +30,8 @@ export function startExerciseReading(image:PreparedImage,base:string,onProgress:
         if(!active)throw new Error('Cancelled');
         const worker=await createWorker(languages,1,{
           workerPath:base+'ocr/worker.min.js',corePath:base+'ocr/core',langPath:base+'ocr/lang',gzip:true,
+          // Tesseract otherwise rethrows worker errors outside the awaited job.
+          errorHandler:()=>finish('unreadable'),
           logger:({status,progress})=>{
             if(!active)return;
             if(status==='recognizing text')onProgress(`正在辨識步數（${Math.round(Math.max(0,Math.min(1,progress))*100)}％）…`);
@@ -40,7 +42,7 @@ export function startExerciseReading(image:PreparedImage,base:string,onProgress:
         if(!active){terminate(worker);throw new Error('Cancelled');}
         workers.add(worker);return worker;
       };
-      const recognized=await recognizeExercise(await create('eng+chi_tra'),image.dataUrl,image,()=>create('eng'),()=>active);
+      const recognized=await recognizeExercise(await create('eng+chi_tra'),image.ocrDataUrl||image.dataUrl,image,()=>create('eng'),()=>active);
       finish(recognized.steps===null?'unreadable':'recognized',recognized.steps);
     }catch{finish('unreadable');}
   })();

@@ -41,3 +41,23 @@ test('closing before engine initialization prevents starting an unnecessary work
   pending.resolve({createWorker:async()=>{created++;},recognizeExercise:async()=>({steps:0})});await flush();
   assert.equal((await job.result).status,'cancelled');assert.equal(created,0);
 });
+
+test('Android worker decode errors finish promptly and release the worker',async()=>{
+  let workerOptions,terminated=0;
+  const job=startExerciseReading(image,'/',()=>{}, {load:async()=>({
+    createWorker:async(_langs,_mode,options)=>{workerOptions=options;return {terminate:async()=>{terminated++;}};},
+    recognizeExercise:async()=>{workerOptions.errorHandler('The source image could not be decoded.');return new Promise(()=>{});},
+  })});
+  assert.deepEqual(await job.result,{status:'unreadable',steps:null});
+  assert.equal(terminated,1);
+});
+
+test('recognition receives the lossless PNG while the saved photo remains JPEG',async()=>{
+  const prepared={...image,ocrDataUrl:'data:image/png;base64,pixels'};
+  const job=startExerciseReading(prepared,'/',()=>{}, {load:async()=>({
+    createWorker:async()=>({terminate:async()=>{}}),
+    recognizeExercise:async(_worker,input)=>{assert.equal(input,prepared.ocrDataUrl);return {steps:138};},
+  })});
+  assert.deepEqual(await job.result,{status:'recognized',steps:138});
+  assert.equal(prepared.dataUrl,image.dataUrl);
+});

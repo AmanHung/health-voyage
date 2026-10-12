@@ -37,3 +37,20 @@ test('a stalled phone image decoder times out and frees late image resources',as
   resolveBitmap({width:100,height:100,close(){closed++;}});
   await new Promise(resolve=>setImmediate(resolve));assert.equal(closed,1);
 });
+
+test('Android bitmap decode rejection falls back to image element and keeps JPEG plus PNG OCR',async(t)=>{
+  const png=new Uint8Array(24);png.set([137,80,78,71]);new DataView(png.buffer).setUint32(16,100);new DataView(png.buffer).setUint32(20,200);
+  const revoked=[],drawn=[];
+  const originals={createImageBitmap:globalThis.createImageBitmap,Image:globalThis.Image,document:globalThis.document,FileReader:globalThis.FileReader};
+  t.after(()=>{for(const [key,value] of Object.entries(originals)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}});
+  t.mock.method(URL,'createObjectURL',blob=>blob instanceof File?'blob:source':'blob:preview');
+  t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));
+  globalThis.createImageBitmap=async()=>{throw new Error('The source image could not be decoded.');};
+  globalThis.Image=class {naturalWidth=100;naturalHeight=200;set src(_value){queueMicrotask(()=>this.onload());}};
+  globalThis.FileReader=class {readAsDataURL(blob){assert.equal(blob.type,'image/jpeg');this.result='data:image/jpeg;base64,saved';queueMicrotask(()=>this.onload());}};
+  globalThis.document={createElement:()=>({getContext:()=>({fillRect(){},drawImage(source){drawn.push(source);}}),toBlob(callback,type){callback(new Blob(['jpeg'],{type}));},toDataURL(type){assert.equal(type,'image/png');return 'data:image/png;base64,ocr';}})};
+  const result=await prepareImage(new File([png],'steps.png',{type:'image/png'}),'exercise');
+  assert.equal(result.dataUrl,'data:image/jpeg;base64,saved');assert.equal(result.ocrDataUrl,'data:image/png;base64,ocr');
+  assert.equal(result.preview,'blob:preview');assert.equal(result.width,100);assert.equal(result.height,200);
+  assert.ok(drawn[0] instanceof Image);assert.deepEqual(revoked,['blob:source']);
+});

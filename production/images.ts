@@ -19,17 +19,31 @@ export function resized(width:number,height:number,longEdge:number) {
   const ratio=Math.min(1,longEdge/Math.max(width,height));
   return {width:Math.max(1,Math.round(width*ratio)),height:Math.max(1,Math.round(height*ratio))};
 }
-export type PreparedImage = {dataUrl:string;preview:string;bytes:number;width:number;height:number};
+export type PreparedImage = {dataUrl:string;ocrDataUrl?:string;preview:string;bytes:number;width:number;height:number};
+async function decodeImage(file:File):Promise<{source:CanvasImageSource;width:number;height:number;close:()=>void}> {
+  if(typeof createImageBitmap==='function') {
+    try {
+      const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
+      return {source:bitmap,width:bitmap.width,height:bitmap.height,close:()=>bitmap.close()};
+    } catch {/* Some Android WebViews reject images their normal image element can display. */}
+  }
+  const url=URL.createObjectURL(file);
+  try {
+    const image=new Image();
+    await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('無法讀取這張圖片，請重新選取 JPG 或 PNG 截圖。'));image.src=url;});
+    return {source:image,width:image.naturalWidth,height:image.naturalHeight,close:()=>URL.revokeObjectURL(url)};
+  } catch(error) {URL.revokeObjectURL(url);throw error;}
+}
 async function processImage(file:File,kind:'exercise'|'meal'):Promise<PreparedImage> {
   if(!file.size||file.size>MAX_SOURCE_BYTES)throw new Error('照片需小於 20 MB，請重新拍攝。');
   const head=new Uint8Array(await file.slice(0,1024*1024).arrayBuffer());
   const source=dimensions(head);resized(source.width,source.height,1920);
-  const image=await createImageBitmap(file,{imageOrientation:'from-image'});
+  const image=await decodeImage(file);
   try {
     const size=resized(image.width,image.height,kind==='exercise'?1920:1280);
     const canvas=document.createElement('canvas');canvas.width=size.width;canvas.height=size.height;
     const ctx=canvas.getContext('2d');if(!ctx)throw new Error('手機無法處理圖片，請換一張照片。');
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image.source,0,0,canvas.width,canvas.height);
     let blob:Blob|null=null;
     for(const quality of [0.88,0.78,0.68,0.58]) {
       blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
@@ -37,7 +51,14 @@ async function processImage(file:File,kind:'exercise'|'meal'):Promise<PreparedIm
     }
     if(!blob||blob.size>800000)throw new Error('照片仍太大，請重新拍攝較簡單的畫面。');
     const dataUrl=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('照片讀取失敗。'));reader.readAsDataURL(blob!);});
-    return {dataUrl,preview:URL.createObjectURL(blob),bytes:blob.size,...size};
+    // OCR uses lossless pixels from this canvas, avoiding another JPEG decode
+    // in the recognition worker. The saved photo remains the compact JPEG.
+    let ocrDataUrl:string|undefined;
+    if(kind==='exercise') {
+      try {const png=canvas.toDataURL('image/png');if(png.startsWith('data:image/png;base64,'))ocrDataUrl=png;}
+      catch {/* Keep the prepared photo available for manual entry. */}
+    }
+    return {dataUrl,ocrDataUrl,preview:URL.createObjectURL(blob),bytes:blob.size,...size};
   } finally {image.close();}
 }
 
