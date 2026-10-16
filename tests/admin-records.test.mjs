@@ -14,7 +14,7 @@ const {outputFiles}=await build({stdin:{contents:`import React from 'react';impo
   const original=${JSON.stringify(base)},deleted={...original,id:'deleted',deletedAt:'2026-09-10T02:00:00Z'};
   export const active=renderToStaticMarkup(<AdminRecordRows records={[original,deleted]} trash={false} disabled={false} onPhoto={()=>{}} onChange={()=>{}}/>);
   export const trash=renderToStaticMarkup(<AdminRecordRows records={[original,deleted]} trash disabled={false} onPhoto={()=>{}} onChange={()=>{}}/>);
-  export const directory=renderToStaticMarkup(<AdminDirectory auth={{provider:'google',token:'fake'}} today="2026-09-10" patients={[{id:'p',name:'測試個案',nickname:'測試',active:true,isTest:true,bound:true,participating:true,healthRewards:{measurements:[],appointments:[],redemptions:[{id:'gift-p',prizeId:'gift30',goal:30,createdAt:'2026-10-16'}]}},{id:'q',name:'第二測試個案',nickname:'測試二',active:true,isTest:true,bound:true,participating:true,healthRewards:{measurements:[],appointments:[],redemptions:[{id:'body-q',prizeId:'body50',goal:50,createdAt:'2026-10-16'}]}}]} onPatientChanged={()=>{}} onReload={async()=>{}} onPhoto={()=>{}}/>);
+  export const directory=renderToStaticMarkup(<AdminDirectory auth={{provider:'google',token:'fake'}} today="2026-09-10" patients={[{id:'p',name:'測試個案',nickname:'測試',active:true,isTest:true,bound:true,participating:true,healthRewards:{measurements:[],appointments:[{id:'cancelled-visit',date:'2099-01-02',createdAt:'2026-10-16',cancelledAt:'2026-10-16'}],redemptions:[{id:'gift-p',prizeId:'gift30',goal:30,createdAt:'2026-10-16'}]}},{id:'q',name:'第二測試個案',nickname:'測試二',active:true,isTest:true,bound:true,participating:true,healthRewards:{measurements:[],appointments:[],redemptions:[{id:'body-q',prizeId:'body50',goal:50,createdAt:'2026-10-16'}]}}]} onPatientChanged={()=>{}} onReload={async()=>{}} onPhoto={()=>{}}/>);
   export const descriptions=[deletionDescription('patient',true),deletionDescription('record',true),deletionDescription('patient',false)];`,loader:'tsx',resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'cjs',define:{'import.meta.env':'{}'},loader:{'.css':'empty'}});
 const compiled={exports:{}};new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);const html=compiled.exports;
 test('deleted daily head is absent from active view, restorable in trash with read-only revision evidence',()=>{
@@ -38,7 +38,7 @@ test('each patient card contains its own reward and handover button without open
   const second=cards.find(c=>c.includes('<h3>第二測試個案</h3>'));
   assert.ok(first&&second);
   assert.match(first,/測試個案的健康登錄與獎品領取/);
-  assert.match(first,/精美小禮物/);assert.doesNotMatch(first,/免費體脂測量/);
+  assert.doesNotMatch(first,/2099-01-02/);assert.match(first,/精美小禮物/);assert.doesNotMatch(first,/免費體脂測量/);
   assert.match(second,/免費體脂測量（前測）/);assert.doesNotMatch(second,/精美小禮物/);
   for(const card of [first,second]){assert.match(card,/待領取/);assert.match(card,/確認已交付/);}
 });

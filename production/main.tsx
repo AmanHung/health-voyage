@@ -1,4 +1,4 @@
-import {HealthCards,RewardShop} from './health-rewards';
+import {HealthCards,RewardShop,AppointmentLoginReminder} from './health-rewards';
 import './journey.css';
 import {JourneyProvider,ShellJourney,RecordCalendar} from './journey-features';
 import {DietGuide} from './food-guide';
@@ -39,6 +39,7 @@ function Choice({label,options,value,onChange}:{label:string;options:string[];va
   return <fieldset><legend>{label}</legend><RadioGroup className="prod-choices" value={value} onValueChange={v=>onChange(String(v))} aria-label={label}>{options.map(option=><label className="prod-choice" key={option}><RadioGroupItem value={option}/><span>{option}</span></label>)}</RadioGroup></fieldset>;
 }
 export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;initialData:Bootstrap;onSignedOut:()=>void}){
+  const [checkinSettled,setCheckinSettled]=useState(()=>!!initialData.profile?.checkinDays?.includes(initialData.today));
   const auth=initialAuth;const [data,setData]=useState<Bootstrap>(initialData),[view,setView]=useState<View>(initialData.role==='patient'?'home':'admin');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
@@ -64,7 +65,7 @@ export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:A
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
       {data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
-      {view==='home'&&progress&&<VoyageHome nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}>{profile&&<><HealthCards auth={auth} profile={profile} today={data.today} onSaved={updateProfile}/><Button className="health-shop-link" variant="outline" onClick={()=>{navigate('journey');requestAnimationFrame(()=>document.getElementById('reward-shop')?.scrollIntoView({block:'start'}));}}>前往貝殼兌換小舖</Button></>}</VoyageHome>}
+      {view==='home'&&progress&&<VoyageHome onCheckinClosed={()=>setCheckinSettled(true)} nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}>{profile&&<><HealthCards auth={auth} profile={profile} today={data.today} onSaved={updateProfile}/><Button className="health-shop-link" variant="outline" onClick={()=>{navigate('journey');requestAnimationFrame(()=>document.getElementById('reward-shop')?.scrollIntoView({block:'start'}));}}>前往貝殼兌換小舖</Button></>}</VoyageHome>}
       {view==='exercise'&&<><div className="voyage-page-heading"><span className="voyage-eyebrow">每天一步，留下自己的足跡</span><h1>運動足跡</h1></div><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/><RecordCalendar kind="exercise" records={records} today={data.today} onPhoto={photo} onRecord={(record?:RecordItem)=>setModal({kind:'exercise',record})}/><StepLeaderboard rows={rows} today={data.today} ownSteps={records.filter(r=>r.kind==='exercise'&&r.mode==='steps'&&r.date.startsWith(data.today.slice(0,7))).reduce((sum,r)=>sum+(r.value||0),0)} avatar={profile?.avatar} onEditAvatar={()=>navigate('account')} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/></>}
       {view==='diet'&&<DietGuide records={records} today={data.today} onRecord={record=>setModal({kind:'meal',record})} onPhoto={photo} onBack={()=>navigate('home')}/>}
       {view==='journey'&&progress&&<><ShellJourney records={records} today={data.today}/>{profile&&<RewardShop auth={auth} profile={profile} today={data.today} records={records} onSaved={updateProfile}/>}</>}
@@ -75,6 +76,7 @@ export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:A
       <footer className="prod-footer">紀錄供照護追蹤，不作即時醫療監測。身體不適請直接就醫。<span className="prod-legal"><a href="./privacy.html">隱私權政策</a><a href="./terms.html">服務條款</a></span></footer>
     </main>
     {data?.role==='patient'&&data.bound&&view!=='admin'&&<VoyageNavigation view={view} onNavigate={navigate}/>}
+    {data.role==='patient'&&data.bound&&profile&&<AppointmentLoginReminder profile={profile} today={data.today} ready={checkinSettled}/>}
     {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className={`prod-dialog voyage-dialog ${modal.kind}`}><span className="voyage-eyebrow">今天的小行動</span><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription>{modal.kind==='medicine'?<MedicationPatient auth={auth} today={data.today} initialDate={modal.record?.date} onSaved={r=>savedRecord(r,false)} legacy={(date,currentRecord)=><RecordForm key={date} auth={auth} kind="medicine" today={data.today} initialDate={date} record={currentRecord} onSaved={savedRecord}/>}/>:<RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={savedRecord}/>}</DialogContent></Dialog>}
     {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><img src={image} alt="已保存的紀錄照片" className="prod-photo"/></DialogContent></Dialog>}
   </div></JourneyProvider>;

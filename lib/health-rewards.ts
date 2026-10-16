@@ -16,10 +16,24 @@ export function healthState(p:{healthRewards?:HealthRewards}):HealthRewards {
 export function validDate(date:unknown):date is string {
   return typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isFinite(Date.parse(date))&&new Date(date).toISOString().slice(0,10)===date;
 }
+// Award by the first registration's Taiwan calendar month, never by visit month.
+// Cancellation keeps the consumed slot; re-registering the same date cannot reset it.
+export function appointmentBonus(appointments:Appointment[],today:string) {
+  const seen=new Set<string>(),months=new Map<string,number>();
+  for(const a of [...appointments].sort((a,b)=>Date.parse(a.createdAt)-Date.parse(b.createdAt))) {
+    const time=Date.parse(a.createdAt);
+    if(!validDate(a.date)||!Number.isFinite(time))continue;
+    const registeredDay=new Date(time+8*3600000).toISOString().slice(0,10);
+    if(registeredDay>today||seen.has(a.date))continue;
+    seen.add(a.date);
+    const month=registeredDay.slice(0,7);
+    months.set(month,Math.min(2,(months.get(month)||0)+1));
+  }
+  return [...months.values()].reduce((sum,n)=>sum+n,0);
+}
 export function healthBalance(records:any[],days:string[],today:string,state:HealthRewards) {
   const monthly=new Set(state.measurements.filter(m=>m.date<=today).map(m=>m.date.slice(0,7))).size*3;
-  // A cancelled or corrected appointment retains its reward key, preventing repeat awards.
-  const visits=new Set(state.appointments.filter(a=>a.createdAt.slice(0,10)<=today).map(a=>a.date)).size;
+  const visits=appointmentBonus(state.appointments,today);
   const total=shellProgress(records,days,today).total+monthly+visits;
   const claimed=new Set(state.redemptions.map(r=>r.prizeId));
   const unlocked=prizes.filter(p=>total>=p.goal);

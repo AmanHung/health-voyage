@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {healthState,healthBalance,reminderState,prizes} from '../lib/health-rewards.ts';
+import {healthState,healthBalance,reminderState,prizes,appointmentBonus} from '../lib/health-rewards.ts';
 import {environment} from './helpers/google-environment.mjs';
 import {randomUUID} from 'node:crypto';
 
@@ -24,7 +24,7 @@ test('appointment date deduplicates across cancellation and re-entry; reminders 
   let r=e.call('health.appointment',{date:'2026-10-18'},a.identity);assert.equal(r.ok,true);
   const id=r.data.profile.healthRewards.appointments[0].id;
   assert.equal(e.call('health.appointment',{date:'2026-10-18'},a.identity).data.profile.healthRewards.appointments.length,1);
-  assert.equal(e.call('health.cancelAppointment',{id},a.identity).ok,true);
+  const cancelled=e.call('health.cancelAppointment',{id},a.identity);assert.equal(cancelled.ok,true);assert.equal(reminderState(cancelled.data.profile.healthRewards,'2026-10-15').upcoming.length,0);
   r=e.call('health.appointment',{date:'2026-10-18'},a.identity);
   const state=r.data.profile.healthRewards;assert.equal(healthBalance([],[],'2026-10-15',state).bonus,1);
   assert.equal(reminderState(state,'2026-10-15').upcoming[0].days,3);
@@ -95,4 +95,37 @@ test('each island unlocks at its exact threshold, and 200 shells unlock all four
     assert.equal('available' in balance,false);
     assert.equal('spent' in balance,false);
   }
+});
+
+test('appointment rewards cap at two per Taiwan registration month, including cancellations and cross-month re-entry',()=>{
+  const e=environment({now:'2026-10-31T15:59:00Z'}),a=e.patient('A');
+  let profile;
+  for(const date of ['2026-11-10','2026-11-11','2026-12-10','2027-01-01']){
+    const r=e.call('health.appointment',{date},a.identity);assert.equal(r.ok,true);profile=r.data.profile;
+  }
+  assert.equal(healthBalance([],[],'2026-10-31',profile.healthRewards).bonus,2);
+  const first=profile.healthRewards.appointments[0];
+  profile=e.call('health.cancelAppointment',{id:first.id},a.identity).data.profile;
+  assert.ok(!reminderState(profile.healthRewards,'2026-10-31').upcoming.some(v=>v.id===first.id));
+  assert.equal(healthBalance([],[],'2026-10-31',profile.healthRewards).bonus,2);
+  e.setNow('2026-10-31T16:00:00Z');
+  profile=e.call('health.appointment',{date:first.date},a.identity).data.profile;
+  assert.equal(healthBalance([],[],'2026-11-01',profile.healthRewards).bonus,2);
+  for(const date of ['2026-11-12','2026-11-13','2026-11-14'])profile=e.call('health.appointment',{date},a.identity).data.profile;
+  assert.equal(healthBalance([],[],'2026-11-01',profile.healthRewards).bonus,4);
+  const other=e.patient('B');assert.equal(healthBalance([],[],'2026-11-01',healthState(e.call('bootstrap',{},other.identity).data.profile)).bonus,0);
+});
+test('legacy appointments are capped deterministically without mutation or future awards',()=>{
+  const appointments=[
+    {id:'a',date:'2026-11-10',createdAt:'2026-10-31T15:59:00Z',cancelledAt:'2026-11-01T00:00:00Z'},
+    {id:'b',date:'2026-11-11',createdAt:'2026-10-31T15:59:01Z'},
+    {id:'c',date:'2026-11-12',createdAt:'2026-10-31T15:59:02Z'},
+    {id:'d',date:'2026-11-10',createdAt:'2026-10-31T16:00:00Z'},
+    {id:'e',date:'2026-11-13',createdAt:'2026-10-31T16:00:01Z'},
+    {id:'f',date:'2026-11-14',createdAt:'2026-11-01T00:00:00Z'}
+  ];
+  const before=JSON.stringify(appointments);
+  assert.equal(appointmentBonus(appointments,'2026-10-31'),2);
+  assert.equal(appointmentBonus([...appointments].reverse(),'2026-11-01'),4);
+  assert.equal(JSON.stringify(appointments),before);
 });
