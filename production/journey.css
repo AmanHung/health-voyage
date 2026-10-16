@@ -80,3 +80,4 @@
 .rc-feedback{margin-top:20px;padding-top:18px;border-top:1px solid #cbded2;color:#195d48}.rc-feedback h4{font-size:18px;margin:0 0 8px}.rc-feedback p{margin:0;line-height:1.8}
 .meal-question-hint{color:#587367;font-size:16px;line-height:1.7;margin:0 0 20px}
 @media(max-width:390px){.spaced-map .route-boat{left:-12px}.spaced-map .route-current-label{left:28px}}
+.spaced-map .island-reward-link{pointer-events:auto;color:inherit;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;min-height:44px;padding:0 3px;margin:-8px -3px;touch-action:manipulation}.spaced-map .island-reward-link:focus-visible{outline:2px solid #fff4ba;outline-offset:4px;border-radius:4px}.spaced-map .island-reward-link:hover{text-decoration:underline;text-underline-offset:4px}

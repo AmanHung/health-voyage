@@ -1,3 +1,5 @@
+import {healthService} from './health-service.js';
+import {healthState} from '../lib/health-rewards.ts';
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
 import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, leaderboardEnabled, feedback } from './domain.js';
 import {avatarValue,validAvatar} from '../lib/avatar.ts';
@@ -91,7 +93,7 @@ function person(identity) {
   const p = read('Patients').find(p => p.subject === identity.subject);
   need(p && p.active && !p.deletedAt, '請先綁定邀請碼，或聯絡照護團隊。'); return p;
 }
-function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,checkinDays:p.checkinDays||[],activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
+function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,healthRewards:healthState(p),checkinDays:p.checkinDays||[],activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
 function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,leaderboardVersion:p.leaderboardVersion||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
 function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
 function visibleRecordIds(records) {
@@ -128,12 +130,14 @@ export function validateImage(data) {
   return {bytes, width, height};
 }
 const medication=medicationService({read,write,need,cleanText,locked,hash,audit,publicRecord,latest,person});
+const health=healthService({read,write,need,locked,audit,person,publicPerson,scoreRecords:id=>{const plans=medication.histories(id);return latest(read('Records',id)).map(r=>medication.decorate(r,plans));}});
 export function dispatch(action, payload, identity) {
   checkRate(identity.subject);
   const today = dayKey();
   if(identity.role==='pharmacist'){
     const assigned=read('Patients').filter(p=>p.active&&!p.deletedAt&&p.pharmacists?.includes(identity.email));
     need(assigned.length,'藥師權限已移除，請聯絡管理員。');
+    if(['health.collect','health.read'].includes(action))return health(action,payload,identity,today);
     if(action==='bootstrap')return {role:'pharmacist',today,patients:assigned.map(p=>({id:p.id,name:p.name}))};
     need(['medication.read','medication.publish'].includes(action),'沒有此操作權限。');
   }
@@ -164,6 +168,7 @@ export function dispatch(action, payload, identity) {
     });
   }
   if(action.startsWith('medication.')||action==='admin.medicationStaff')return medication.dispatch(action,payload,identity,today);
+  if(action.startsWith('health.'))return health(action,payload,identity,today);
   if(action==='checkin') {
     need(identity.role==='patient','只有個案可以簽到。');
     return locked(()=>{
@@ -347,7 +352,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:9,capabilities:['activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:10,capabilities:['healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

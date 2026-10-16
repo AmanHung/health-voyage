@@ -12,6 +12,6 @@ assert.equal(shellProgress([row('medicine',0,{status:'有疑問',medicationCompl
 assert.equal(shellProgress([row('medicine',0,{status:'有疑問'})],[],today).total,1);
 assert.equal(shellProgress([...all,row('meal',0,{deletedAt:'deleted',createdAt:today+'T09:00:00Z'})],[today],today).total,4);
 assert.equal(shellProgress([row('meal',0,{date:'2026-09-24'})],['2026-09-24'],today).total,0);
-for(const goal of [1,30,50,100,200]){const checks=Array.from({length:goal},(_,i)=>new Date(Date.UTC(2025,0,i+1)).toISOString().slice(0,10));const p=shellProgress([],checks,today);assert.equal(p.current.goal,goal);assert.equal(p.total,goal);}
-assert.deepEqual(islands.map(i=>i.goal),[1,30,50,100,200]);
+for(const goal of [1,30,50,80,200]){const checks=Array.from({length:goal},(_,i)=>new Date(Date.UTC(2025,0,i+1)).toISOString().slice(0,10));const p=shellProgress([],checks,today);assert.equal(p.current.goal,goal);assert.equal(p.total,goal);}
+assert.deepEqual(islands.map(i=>i.goal),[1,30,50,80,200]);
 console.log('PASS: step boundaries, daily cap, deduplication, revisions/deletions, photo requirements, medication reporting, future exclusion, five island thresholds');

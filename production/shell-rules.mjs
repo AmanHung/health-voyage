@@ -1,4 +1,4 @@
-export const islands=[{name:'啟航燈塔島',goal:1,detail:'沿著晨光，留下第一枚足跡'},{name:'椰風花園島',goal:30,detail:'椰影、白沙與盛開的海岸花園'},{name:'珊瑚琉璃島',goal:50,detail:'透亮潟湖，遇見繽紛的珊瑚海'},{name:'翡翠瀑布島',goal:100,detail:'走進山林，聽見層層瀑布的回響'},{name:'極光秘境島',goal:200,detail:'繁花與星光，收藏最美的海上秘境'}];
+export const islands=[{name:'啟航燈塔島',goal:1,detail:'沿著晨光，留下第一枚足跡'},{name:'椰風花園島',goal:30,detail:'椰影、白沙與盛開的海岸花園'},{name:'珊瑚琉璃島',goal:50,detail:'透亮潟湖，遇見繽紛的珊瑚海'},{name:'翡翠瀑布島',goal:80,detail:'走進山林，聽見層層瀑布的回響'},{name:'極光秘境島',goal:200,detail:'繁花與星光，收藏最美的海上秘境'}];
 export function shellProgress(records,checkins,today){
  const latest=new Map();
  for(const r of records){if(!r.date||r.date>today)continue;const key=r.date+':'+r.kind;const old=latest.get(key);if(!old||String(r.createdAt)>=String(old.createdAt))latest.set(key,r);}

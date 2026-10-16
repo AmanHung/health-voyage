@@ -1,8 +1,9 @@
+import type {HealthRewards} from '../lib/health-rewards';
 import type {DoseReport} from '../lib/medication';
 import {config} from './config';
 export type Auth = {provider:'line'|'google';token:string};
 import type {ActivityGoal} from '../lib/activity-goal';
-export type Profile = {id:string;nickname:string;avatar?:string;leaderboardEnabled?:boolean;participating:boolean;isTest:boolean;active:boolean;checkinDays?:string[];activityGoals?:ActivityGoal[]};
+export type Profile = {id:string;nickname:string;avatar?:string;leaderboardEnabled?:boolean;participating:boolean;isTest:boolean;active:boolean;healthRewards?:HealthRewards;checkinDays?:string[];activityGoals?:ActivityGoal[]};
 export type AdminPatient = Profile&{name:string;bound:boolean;deletedAt?:string|null;leaderboardVersion?:string|null;stateVersion?:string|null};
 import type {MealInterview} from '../lib/meal-interview';
 export type RecordItem = {id:string;patientId:string;date:string;kind:'exercise'|'meal'|'medicine';createdAt:string;hasImage:boolean;previousId?:string|null;deletedAt?:string|null;mode?:'steps'|'minutes';value?:number;activity?:string;recognized?:number|null;period?:string;groups?:string[];eaten?:string;drink?:string;restrictedDiet?:boolean|null;mealDetails?:MealInterview;feedback?:string;status?:string;medicationDoses?:DoseReport[];medicationComplete?:boolean;medicationExpected?:number;medicationNoScheduled?:boolean};

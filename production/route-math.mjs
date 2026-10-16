@@ -1,5 +1,5 @@
 // Arrival docks and departure points leave a gap across every island.
-export const stops=[{goal:0,x:65,y:27},{goal:1,x:65,y:27},{goal:30,x:32,y:58},{goal:50,x:65,y:111},{goal:100,x:32,y:164},{goal:200,x:65,y:235}];
+export const stops=[{goal:0,x:65,y:27},{goal:1,x:65,y:27},{goal:30,x:32,y:58},{goal:50,x:65,y:111},{goal:80,x:32,y:164},{goal:200,x:65,y:235}];
 export const departures=[{x:65,y:32},{x:32,y:89},{x:65,y:142},{x:32,y:203}];
 const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
 export function routeGeometry(total){

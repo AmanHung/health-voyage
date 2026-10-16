@@ -1,3 +1,4 @@
+import {StaffRewards} from './health-rewards';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pill, Check, Plus, RefreshCw, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -1184,6 +1185,7 @@ export function PharmacistHome({
           ))}
         </div>
       </section>
+      {selected && <StaffRewards key={id+'rewards'} auth={auth} patientId={id}/>}
       {selected && (
         <MedicationManager
           key={id}
