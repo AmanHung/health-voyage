@@ -1,3 +1,5 @@
+import {careService} from './care-service.js';
+import {recordCareSummary} from '../lib/care.ts';
 import {healthService} from './health-service.js';
 import {healthState,healthBalance} from '../lib/health-rewards.ts';
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
@@ -9,6 +11,8 @@ const SCHEMAS = {
   Patients: ['個案編號', '建立時間', '姓名', '暱稱', '測試個案', '資料'],
   Records: ['紀錄編號', '個案編號', '日期', '種類', '儲存時間', '資料'],
   Audit: ['時間', '操作者', '操作', '目標', '資料'],
+  CareAdvice: ['建議版本編號','個案編號','建立時間','資料'],
+  CareReads: ['閱讀編號','個案編號','建立時間','資料'],
   MedicationPlans: ['版本編號','個案編號','生效時間','建立時間','資料'],
 };
 const props = () => PropertiesService.getScriptProperties();
@@ -21,7 +25,7 @@ function sheet(name) {
   need(s, '資料表尚未準備完成。'); return s;
 }
 function read(name, patientId) {
-  const s = name==='MedicationPlans'?SpreadsheetApp.openById(config('RECORD_SHEET_ID')).getSheetByName(name):sheet(name); if (!s) return [];
+  const s = ['MedicationPlans','CareAdvice','CareReads'].includes(name)?SpreadsheetApp.openById(config('RECORD_SHEET_ID')).getSheetByName(name):sheet(name); if (!s) return [];
   const lastRow=s.getLastRow();if(lastRow<2)return [];
   // This prototype is deliberately bounded; fail instead of silently dropping records.
   need(lastRow <= 25000, '資料量已達試用上限，請管理員安排升級。');
@@ -37,11 +41,12 @@ function columns(name, row) {
   const data = {...row}; delete data._row;
   if (name === 'Patients') return [row.id, row.createdAt, row.name, row.nickname, row.isTest ? '是' : '否', JSON.stringify(data)];
   if (name === 'MedicationPlans') return [row.id,row.patientId,row.effectiveFrom,row.createdAt,JSON.stringify(data)];
+  if (['CareAdvice','CareReads'].includes(name)) return [row.id,row.patientId,row.createdAt,JSON.stringify(data)];
   if (name === 'Records') return [row.id, row.patientId, row.date, row.kind, row.createdAt, JSON.stringify(data)];
   return [row.createdAt, row.actor, row.action, row.target, JSON.stringify(data)];
 }
 function write(name, row, number) {
-  if(name==='MedicationPlans'){const book=SpreadsheetApp.openById(config('RECORD_SHEET_ID'));if(!book.getSheetByName(name)){const created=book.insertSheet(name);created.getRange(1,1,1,SCHEMAS[name].length).setValues([SCHEMAS[name]]);created.setFrozenRows(1);}}
+  if(['MedicationPlans','CareAdvice','CareReads'].includes(name)){const book=SpreadsheetApp.openById(config('RECORD_SHEET_ID'));if(!book.getSheetByName(name)){const created=book.insertSheet(name);created.getRange(1,1,1,SCHEMAS[name].length).setValues([SCHEMAS[name]]);created.setFrozenRows(1);}}
   const s = sheet(name), cells = columns(name, row).map(v => /^[=+@\-\t\r]/.test(String(v)) ? "'" + v : v);
   s.getRange(number || s.getLastRow()+1, 1, 1, cells.length).setNumberFormat('@').setValues([cells]);
 }
@@ -131,6 +136,7 @@ export function validateImage(data) {
 }
 const medication=medicationService({read,write,need,cleanText,locked,hash,audit,publicRecord,latest,person});
 const health=healthService({read,write,need,locked,audit,person,publicPerson,scoreRecords:id=>{const plans=medication.histories(id);return latest(read('Records',id)).map(r=>medication.decorate(r,plans));}});
+const care=careService({read,write,need,locked,audit,person,cleanText,hash});
 export function dispatch(action, payload, identity) {
   checkRate(identity.subject);
   const today = dayKey();
@@ -167,6 +173,7 @@ export function dispatch(action, payload, identity) {
       return {emails:next.emails,version:next.version};
     });
   }
+  if(action.startsWith('care.'))return care.dispatch(action,payload,identity);
   if(action.startsWith('medication.')||action==='admin.medicationStaff')return medication.dispatch(action,payload,identity,today);
   if(action.startsWith('health.'))return health(action,payload,identity,today);
   if(action==='checkin') {
@@ -188,7 +195,8 @@ export function dispatch(action, payload, identity) {
     if (!p) return {role:'patient', bound:false, today};
     need(p.active && !p.deletedAt, '帳號已停用，請聯絡照護團隊。');
     const plans=medication.histories(p.id);
-    return {role:'patient',bound:true,today,profile:publicPerson(p),records:latest(read('Records',p.id)).map(r=>medication.decorate(r,plans))};
+    const records=latest(read('Records',p.id)).map(r=>medication.decorate(r,plans));
+    return {role:'patient',bound:true,today,profile:publicPerson(p),records,care:care.inbox(p,records)};
   }
   if (action === 'admin.createPatient') {
     admin(identity);
@@ -223,10 +231,10 @@ export function dispatch(action, payload, identity) {
   }
   if (action === 'admin.patients') {
     admin(identity);
-    const patients=read('Patients'),recordsByPatient=new Map(),plansByPatient=new Map();
+    const patients=read('Patients'),recordsByPatient=new Map(),plansByPatient=new Map(),careReads=read('CareReads');
     for(const r of read('Records')){if(!recordsByPatient.has(r.patientId))recordsByPatient.set(r.patientId,[]);recordsByPatient.get(r.patientId).push(r);}
     for(const plan of read('MedicationPlans')){if(!plansByPatient.has(plan.patientId))plansByPatient.set(plan.patientId,[]);plansByPatient.get(plan.patientId).push(plan);}
-    return {patients:patients.map(p=>({...adminPerson(p),shellTotal:healthBalance(latest(recordsByPatient.get(p.id)||[]).map(r=>medication.decorate(r,plansByPatient.get(p.id)||[])),p.checkinDays||[],today,healthState(p)).total}))};
+    return {patients:patients.map(p=>({...adminPerson(p),...recordCareSummary(recordsByPatient.get(p.id)||[],careReads.filter(r=>r.patientId===p.id),identity.subject),shellTotal:healthBalance(latest(recordsByPatient.get(p.id)||[]).map(r=>medication.decorate(r,plansByPatient.get(p.id)||[])),p.checkinDays||[],today,healthState(p)).total}))};
   }
   if (action === 'admin.leaderboard') {
     admin(identity);need(typeof payload.enabled==='boolean','請確認排行榜勾選狀態。');
@@ -358,7 +366,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:12,capabilities:['adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:13,capabilities:['careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

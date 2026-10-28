@@ -1,3 +1,4 @@
+import {RecordCareAdvice} from './care';
 import {StaffRewards} from './health-rewards';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pill, Check, Plus, RefreshCw, ChevronLeft } from 'lucide-react';
@@ -348,6 +349,7 @@ export function MedicationPatient({
           {notice}
         </p>
       )}
+      {data?.record&&<RecordCareAdvice record={data.record}/>}
       {!loading && data && data.plans.length > 0 && (
         <details className="med-prn" open={doses.length === 0}>
           <summary>已收到藥師用藥清單</summary>

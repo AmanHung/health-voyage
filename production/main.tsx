@@ -1,3 +1,5 @@
+import {CareProvider,CareInbox,RecordCareAdvice,useCare} from './care';
+import {CareAdminDirectory} from './care-admin';
 import {HealthCards,RewardShop,AppointmentLoginReminder} from './health-rewards';
 import './journey.css';
 import {JourneyProvider,ShellJourney,RecordCalendar} from './journey-features';
@@ -38,7 +40,9 @@ function message(error:unknown){return error instanceof Error?error.message:'操
 function Choice({label,options,value,onChange}:{label:string;options:string[];value:string;onChange:(value:string)=>void}){
   return <fieldset><legend>{label}</legend><RadioGroup className="prod-choices" value={value} onValueChange={v=>onChange(String(v))} aria-label={label}>{options.map(option=><label className="prod-choice" key={option}><RadioGroupItem value={option}/><span>{option}</span></label>)}</RadioGroup></fieldset>;
 }
-export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;initialData:Bootstrap;onSignedOut:()=>void}){
+export default function App(props:{initialAuth:Auth;initialData:Bootstrap;onSignedOut:()=>void}){return <CareProvider key={props.initialData.profile?.id||props.initialData.email||props.initialData.role} auth={props.initialAuth} initial={props.initialData.care} initialRecords={props.initialData.records}><AppContent {...props}/></CareProvider>;}
+function AppContent({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;initialData:Bootstrap;onSignedOut:()=>void}){
+  const care=useCare();
   const [checkinSettled,setCheckinSettled]=useState(()=>!!initialData.profile?.checkinDays?.includes(initialData.today));
   const auth=initialAuth;const [data,setData]=useState<Bootstrap>(initialData),[view,setView]=useState<View>(initialData.role==='patient'?'home':'admin');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -46,11 +50,12 @@ export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:A
   const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<StepRow[]>([]),[rankError,setRankError]=useState('');
   const [celebration,setCelebration]=useState(0);
   const [rankLoading,setRankLoading]=useState(true),[rankRetry,setRankRetry]=useState(0);
-  async function refresh(){if(!auth)return;const result=await api<Bootstrap>(auth,'bootstrap');setData(result);}
+  async function refresh(){if(!auth)return;const result=await api<Bootstrap>(auth,'bootstrap');setData(result);if(result.care)care.replace(result.care);}
   useEffect(()=>{if(!auth||!data?.bound||view!=='exercise')return;let active=true;setRankError('');setRankLoading(true);api<{rows:typeof rows}>(auth,'leaderboard').then(r=>{if(active)setRows(r.rows);}).catch(()=>{if(active)setRankError('排行榜暫時無法讀取。');}).finally(()=>{if(active)setRankLoading(false);});return()=>{active=false;};},[auth,data,view,rankRetry]);
   function logout(){onSignedOut();}
   async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id});setImage(result.dataUrl);}catch(e){setError(message(e));}finally{setBusy(false);}}
   const records=data?.records||[],profile=data?.profile;
+  useEffect(()=>{care.setRecords(records);},[data.records]);
   const progress=data?voyageProgress(records,data.today):null;
   function navigate(next:PatientView){setView(next);setNotice('');window.scrollTo({top:0,behavior:'instant'});}
   function savedRecord(r:RecordItem,close=true){const newDay=!records.some(old=>old.date===r.date);setData(d=>d?{...d,records:[...(d.records||[]).filter(x=>!(x.date===r.date&&x.kind===r.kind)),r]}:d);if(close)setModal(null);setCelebration(n=>n+1);if(r.kind==='meal'){setNotice('');setView('diet');requestAnimationFrame(()=>document.querySelector('.rc-record')?.scrollIntoView({behavior:'smooth',block:'center'}));return;}setNotice(newDay?'紀錄已保存，航程新增一個紀錄日！':'紀錄已保存，每份努力都留下足跡。');}
@@ -65,7 +70,8 @@ export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:A
       {error&&<p role="alert" className="prod-error">{error}</p>}{notice&&<div key={celebration} role="status" className="prod-success voyage-saved"><Check aria-hidden/><p>{notice}</p></div>}
       {data.role==='admin'?<Admin auth={auth} email={data.email||''} today={data.today} onError={setError} onPhoto={photo}/>:data.role==='pharmacist'?<PharmacistHome auth={auth} today={data.today} patients={data.patients||[]}/>:!data.bound?<Binding auth={auth} onBound={refresh}/>:<>
       {view==='history'&&<Button variant="ghost" onClick={()=>navigate('account')}><ArrowLeft/>回我的帳號</Button>}
-      {view==='home'&&progress&&<VoyageHome onCheckinClosed={()=>setCheckinSettled(true)} nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}>{profile&&<><HealthCards auth={auth} profile={profile} today={data.today} onSaved={updateProfile}/><Button className="health-shop-link" variant="outline" onClick={()=>{navigate('journey');requestAnimationFrame(()=>document.getElementById('reward-shop')?.scrollIntoView({block:'start'}));}}>前往貝殼兌換小舖</Button></>}</VoyageHome>}
+      {view==='home'&&<CareInbox/>}
+      {view==='home'&&progress&&<VoyageHome checkinReady={care.settled} onCheckinClosed={()=>setCheckinSettled(true)} nickname={profile?.nickname||'您'} progress={progress} records={records} onTask={(kind,record)=>setModal({kind,record})} onNavigate={navigate}>{profile&&<><HealthCards auth={auth} profile={profile} today={data.today} onSaved={updateProfile}/><Button className="health-shop-link" variant="outline" onClick={()=>{navigate('journey');requestAnimationFrame(()=>document.getElementById('reward-shop')?.scrollIntoView({block:'start'}));}}>前往貝殼兌換小舖</Button></>}</VoyageHome>}
       {view==='exercise'&&<><div className="voyage-page-heading"><span className="voyage-eyebrow">每天一步，留下自己的足跡</span><h1>運動足跡</h1></div><ActivityGoalCard history={profile?.activityGoals} records={records} today={data.today} onRecord={()=>setModal({kind:'exercise',record:records.find(r=>r.date===data.today&&r.kind==='exercise')})}/><RecordCalendar kind="exercise" records={records} today={data.today} onPhoto={photo} onRecord={(record?:RecordItem)=>setModal({kind:'exercise',record})}/><StepLeaderboard rows={rows} today={data.today} ownSteps={records.filter(r=>r.kind==='exercise'&&r.mode==='steps'&&r.date.startsWith(data.today.slice(0,7))).reduce((sum,r)=>sum+(r.value||0),0)} avatar={profile?.avatar} onEditAvatar={()=>navigate('account')} loading={rankLoading} error={rankError} onRetry={()=>setRankRetry(n=>n+1)}/></>}
       {view==='diet'&&<DietGuide records={records} today={data.today} onRecord={record=>setModal({kind:'meal',record})} onPhoto={photo} onBack={()=>navigate('home')}/>}
       {view==='journey'&&progress&&<><ShellJourney records={records} today={data.today}/>{profile&&<RewardShop auth={auth} profile={profile} today={data.today} records={records} onSaved={updateProfile}/>}</>}
@@ -76,7 +82,7 @@ export default function App({initialAuth,initialData,onSignedOut}:{initialAuth:A
       <footer className="prod-footer">紀錄供照護追蹤，不作即時醫療監測。身體不適請直接就醫。<span className="prod-legal"><a href="./privacy.html">隱私權政策</a><a href="./terms.html">服務條款</a></span></footer>
     </main>
     {data?.role==='patient'&&data.bound&&view!=='admin'&&<VoyageNavigation view={view} onNavigate={navigate}/>}
-    {data.role==='patient'&&data.bound&&profile&&<AppointmentLoginReminder profile={profile} today={data.today} ready={checkinSettled}/>}
+    {data.role==='patient'&&data.bound&&profile&&<AppointmentLoginReminder profile={profile} today={data.today} ready={checkinSettled&&care.settled}/>}
     {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className={`prod-dialog voyage-dialog ${modal.kind}`}><span className="voyage-eyebrow">今天的小行動</span><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription>{modal.kind==='medicine'?<MedicationPatient auth={auth} today={data.today} initialDate={modal.record?.date} onSaved={r=>savedRecord(r,false)} legacy={(date,currentRecord)=><RecordForm key={date} auth={auth} kind="medicine" today={data.today} initialDate={date} record={currentRecord} onSaved={savedRecord}/>}/>:<RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={savedRecord}/>}</DialogContent></Dialog>}
     {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><img src={image} alt="已保存的紀錄照片" className="prod-photo"/></DialogContent></Dialog>}
   </div></JourneyProvider>;
@@ -93,7 +99,7 @@ function Account({auth,profile,onSaved}:{auth:Auth;profile:Profile;onSaved:(p:Pr
   return <form className="surface prod-form" onSubmit={save}><h1>我的帳號</h1><label>排行榜暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label><AvatarPicker value={avatar} onChange={setAvatar} disabled={busy||processing} onFile={file=>void selectAvatar(file)}/>{processing&&<p role="status">正在處理大頭照…</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing}>{busy?'儲存中…':'儲存設定'}</Button></form>;
 }
 function RecordList({records,onPhoto,onEdit}:{records:RecordItem[];onPhoto:(r:RecordItem)=>void;onEdit?:(r:RecordItem)=>void}){
-  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p><MedicationHistory record={r}/>{r.feedback&&<p className="prod-feedback"><strong>本餐回饋：</strong>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
+  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p><MedicationHistory record={r}/><RecordCareAdvice record={r}/>{r.feedback&&<p className="prod-feedback"><strong>本餐回饋：</strong>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
 }
 function RecordForm({auth,kind,today,initialDate,record,onSaved}:{auth:Auth;kind:RecordItem['kind'];today:string;initialDate?:string;record?:RecordItem;onSaved:(r:RecordItem)=>void}){
   const [date,setDate]=useState(record?.date||initialDate||today),[value,setValue]=useState(record?.mode==='steps'?record.value?.toString()||'':'');
@@ -142,11 +148,12 @@ function RecordForm({auth,kind,today,initialDate,record,onSaved}:{auth:Auth;kind
 function Admin({auth,email,today,onError,onPhoto}:{auth:Auth;email:string;today:string;onError:(error:string)=>void;onPhoto:(r:RecordItem)=>void}){
   const [patients,setPatients]=useState<AdminPatient[]>([]),[name,setName]=useState(''),[busy,setBusy]=useState(false),[code,setCode]=useState('');
   const requestId=useRef(crypto.randomUUID());
-  async function load(){const r=await api<{patients:typeof patients}>(auth,'admin.patients');setPatients(r.patients);}
+  const loadEpoch=useRef(0);
+  async function load(){const n=++loadEpoch.current;const r=await api<{patients:typeof patients}>(auth,'admin.patients');if(n===loadEpoch.current)setPatients(r.patients);}
   useEffect(()=>{load().catch(e=>onError(message(e)));},[]);
   async function create(e:FormEvent){e.preventDefault();setBusy(true);onError('');try{const r=await api<{code?:string}>(auth,'admin.createPatient',{name,isTest:false,requestId:requestId.current});setCode(r.code||'已建立，邀請碼只於首次建立時顯示。');requestId.current=crypto.randomUUID();await load();}catch(e){onError(message(e));}finally{setBusy(false);}}
   return <><section className="surface"><h1>管理後臺</h1><p>登入帳號：{email}</p><a className="prod-link-button" href={`https://liff.line.me/${config.liffId}`} target="_blank" rel="noreferrer"><Home/>開啟個案網站</a><p className="prod-login-note">請使用已綁定個案的 LINE 帳號登入。</p><details className="admin-tools"><summary>新增個案</summary><form className="prod-form" onSubmit={create}><label>姓名<Input placeholder="請輸入個案姓名" value={name} onChange={e=>{setName(e.target.value);requestId.current=crypto.randomUUID();}} required maxLength={40}/></label><Button type="submit" disabled={busy}>建立一次性邀請碼</Button>{code&&<p role="status" className="prod-code">{code}<br/><small>首次顯示的邀請碼有效 3 天，請私下交給個案。</small></p>}</form></details></section>
     <details className="surface admin-tools"><summary>管理員帳號設定</summary><AdminAccounts auth={auth} currentEmail={email}/></details>
-    <AdminDirectory auth={auth} today={today} patients={patients} onPatientChanged={patient=>setPatients(current=>current.map(p=>p.id===patient.id?patient:p))} onReload={load} onPhoto={onPhoto}/>
+    <CareAdminDirectory auth={auth} today={today} patients={patients} onPatientChanged={patient=>setPatients(current=>current.map(p=>p.id===patient.id?patient:p))} onReload={load} onPhoto={onPhoto}/>
   </>;
 }
