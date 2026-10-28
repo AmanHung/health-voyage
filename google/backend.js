@@ -1,5 +1,5 @@
 import {healthService} from './health-service.js';
-import {healthState} from '../lib/health-rewards.ts';
+import {healthState,healthBalance} from '../lib/health-rewards.ts';
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
 import { requireValue as need, cleanText, dayKey, validateRecord, latest, leaderboard, leaderboardEnabled, feedback } from './domain.js';
 import {avatarValue,validAvatar} from '../lib/avatar.ts';
@@ -221,7 +221,13 @@ export function dispatch(action, payload, identity) {
       return {profile:publicPerson(p)};
     });
   }
-  if (action === 'admin.patients') { admin(identity); return {patients:read('Patients').map(adminPerson)}; }
+  if (action === 'admin.patients') {
+    admin(identity);
+    const patients=read('Patients'),recordsByPatient=new Map(),plansByPatient=new Map();
+    for(const r of read('Records')){if(!recordsByPatient.has(r.patientId))recordsByPatient.set(r.patientId,[]);recordsByPatient.get(r.patientId).push(r);}
+    for(const plan of read('MedicationPlans')){if(!plansByPatient.has(plan.patientId))plansByPatient.set(plan.patientId,[]);plansByPatient.get(plan.patientId).push(plan);}
+    return {patients:patients.map(p=>({...adminPerson(p),shellTotal:healthBalance(latest(recordsByPatient.get(p.id)||[]).map(r=>medication.decorate(r,plansByPatient.get(p.id)||[])),p.checkinDays||[],today,healthState(p)).total}))};
+  }
   if (action === 'admin.leaderboard') {
     admin(identity);need(typeof payload.enabled==='boolean','請確認排行榜勾選狀態。');
     return locked(()=>{
@@ -352,7 +358,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:11,capabilities:['monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:12,capabilities:['adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');

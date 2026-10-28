@@ -3,3 +3,11 @@
 .admin-leaderboard-toggle{display:flex;align-items:center;gap:12px;min-height:48px;margin:12px 0;font-size:18px;cursor:pointer}.admin-leaderboard-toggle input{width:24px;height:24px;accent-color:#247967;flex-shrink:0}.admin-leaderboard-toggle:has(input:disabled){opacity:.65;cursor:default}
 
 .inline-staff-rewards{margin-top:20px;padding-top:18px;border-top:1px solid #d6e3d8}.inline-staff-rewards h4{font-size:20px;font-weight:700;color:#275e40;margin:0 0 12px}.inline-staff-rewards details{margin:12px 0}.inline-staff-rewards summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:16px}.inline-staff-rewards .visit-reminder{background:#f5faf3;border-color:#d6e3d8}.inline-staff-rewards button{min-height:48px;height:auto;white-space:normal;font-size:17px;padding:12px 16px}.inline-staff-rewards p{font-size:16px;line-height:1.7}
+
+.admin-patient-select{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:64px;text-align:left;cursor:pointer;border:0;background:transparent;color:inherit;padding:8px 0;flex-wrap:wrap}.admin-patient-select h3{margin:0}.admin-patient-select span{font-size:16px;color:#247967}.admin-patient-select:focus-visible{outline:3px solid #247967;outline-offset:4px;border-radius:8px}.admin-patient-tools{border-top:1px solid #d6e3d8;padding-top:18px;margin-top:12px}.admin-tools>summary{cursor:pointer;font-size:20px;font-weight:700;min-height:48px;padding:12px 0}.admin-tools[open]>summary{margin-bottom:16px}
+
+.admin-patient-select .admin-patient-name{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;color:inherit}.admin-patient-select .admin-shell-count{display:inline-flex;align-items:center;gap:5px;font-size:19px;font-weight:700;white-space:nowrap;color:#247967}.admin-shell-count img{width:28px;height:28px;object-fit:contain}
+
+.admin-inline-records{margin:20px 0;padding:18px 0;border-top:1px solid #d6e3d8;border-bottom:1px solid #d6e3d8}.admin-inline-records h2{font-size:22px}.admin-inline-records .admin-heading{justify-content:flex-start}
+
+.admin-inline-function{margin:20px 0;border-top:1px solid #d6e3d8;padding-top:12px;min-width:0}.admin-inline-function>.surface{margin:12px 0;padding:0;border:0;box-shadow:none;min-width:0}

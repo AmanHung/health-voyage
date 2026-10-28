@@ -42,15 +42,15 @@ test('idempotent retry makes one record; corrections preserve history and replac
   e.call('profile',{nickname:'參賽者'},p.identity);
   assert.equal(e.call('leaderboard',{},p.identity).data.rows[0].steps,2000);
 });
-test('legacy accounts retain their default leaderboard visibility',()=>{
+test('all accounts join the leaderboard by default unless explicitly excluded',()=>{
   const e=environment(),p=e.patient('A');e.call('profile',{nickname:'測試暱稱'},p.identity);
   e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1000,activity:'步行'},requestId:randomUUID(),image},p.identity);
-  assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[]);
+  assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[{nickname:'測試暱稱',avatar:'sail',steps:1000}]);
   const real=e.patient('REAL',false);e.call('profile',{nickname:'正式暱稱'},real.identity);
   e.call('save',{record:{kind:'exercise',date:dayKey(),mode:'steps',value:1234,activity:'步行'},requestId:randomUUID(),image},real.identity);
   const current=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows;
   const stored=JSON.parse(current[2][5]);stored.participating=false;current[2][5]=JSON.stringify(stored);
-  assert.deepEqual(e.call('leaderboard',{},real.identity).data.rows,[{nickname:'正式暱稱',avatar:'sail',steps:1234}]);
+  assert.deepEqual(e.call('leaderboard',{},real.identity).data.rows,[{nickname:'正式暱稱',avatar:'sail',steps:1234},{nickname:'測試暱稱',avatar:'sail',steps:1000}]);
 });
 test('ordinary JPEG metadata is accepted after private upload checks',()=>{
   const e=environment();
@@ -116,7 +116,7 @@ test('invalid and inactive patient goals fail without writes; service advertises
   const stored=JSON.parse(row[5]);stored.active=false;row[5]=JSON.stringify(stored);
   assert.equal(e.call('admin.activityGoal',{patientId:p.id,steps:3000,requestId:randomUUID()}).ok,false);
   assert.equal(JSON.parse(row[5]).activityGoals,undefined);
-  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin']);
+  assert.deepEqual(JSON.parse(e.context.HealthVoyage.get().text).capabilities,['adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin']);
 });
 
 test('admin deletes the daily record without revealing older revisions; photos and audit survive',()=>{
@@ -166,7 +166,7 @@ test('deleted patients lose all patient access, stay bound and restore their pri
   assert.equal(e.call('admin.patientStatus',body,p.identity).ok,false);
   const deleted=e.call('admin.patientStatus',body);assert.equal(deleted.ok,true,deleted.error);assert.equal(deleted.data.patient.active,false);
   for(const [action,payload] of [['bootstrap',{}],['profile',{nickname:'改暱稱'}],['image',{id:first.id}],['leaderboard',{}],['save',{record,image,requestId:randomUUID()}],['bind',{code:p.code,nickname:'重新綁定'}]])assert.equal(e.call(action,payload,p.identity).ok,false,action);
-  assert.equal(e.call('leaderboard',{},other.identity).data.rows.length,0);
+  assert.deepEqual(e.call('leaderboard',{},other.identity).data.rows,[{nickname:'測試B',avatar:'sail',steps:0}]);
   assert.equal(e.call('admin.records',{patientId:p.id}).data.records.length,1);
   assert.equal(e.call('image',{id:first.id}).ok,true);
   assert.equal(e.call('admin.recordStatus',{id:first.id,deleted:true,requestId:randomUUID()}).ok,false);
@@ -226,7 +226,8 @@ test('admin can include test members and exclude real members without losing rec
   const e=environment(),p=e.patient('T1'),real=e.patient('T2',false);
   const record={kind:'exercise',date:dayKey(),mode:'steps',value:1000,activity:'步行'};
   assert.equal(e.call('save',{record,requestId:randomUUID(),image},p.identity).ok,true);
-  const enabled=e.call('admin.leaderboard',{patientId:p.id,enabled:true});assert.equal(enabled.ok,true,enabled.error);
+  const excluded=e.call('admin.leaderboard',{patientId:p.id,enabled:false});assert.equal(excluded.ok,true);
+  const enabled=e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:excluded.data.patient.leaderboardVersion});assert.equal(enabled.ok,true,enabled.error);
   assert.equal(enabled.data.patient.leaderboardEnabled,true);assert.ok(enabled.data.patient.leaderboardVersion);
   assert.equal(e.call('leaderboard',{},p.identity).data.rows.some(r=>r.steps===1000),true);
   const disabled=e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:enabled.data.patient.leaderboardVersion});assert.equal(disabled.ok,true);
@@ -237,20 +238,36 @@ test('admin can include test members and exclude real members without losing rec
   assert.equal(e.call('admin.leaderboard',{patientId:real.id,enabled:false}).data.patient.leaderboardEnabled,false);
   assert.deepEqual(e.call('leaderboard',{},p.identity).data.rows,[]);
   const audit=e.books.get(e.properties.get('RECORD_SHEET_ID')).getSheetByName('Audit').rows.slice(1).map(r=>JSON.parse(r[4]));
-  assert.equal(audit.filter(r=>r.action==='leaderboard.update').length,3);
+  assert.equal(audit.filter(r=>r.action==='leaderboard.update').length,4);
 });
 test('leaderboard toggle enforces admin access, input validation, safe retries and concurrent edits',()=>{
   const e=environment(),p=e.patient('T3');
   assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true},p.identity).ok,false);
   for(const enabled of ['true',1,null])assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled}).ok,false);
   assert.equal(e.call('admin.leaderboard',{patientId:'missing',enabled:true}).ok,false);
-  const first=e.call('admin.leaderboard',{patientId:p.id,enabled:true}).data.patient;
-  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true}).data.patient.leaderboardVersion,first.leaderboardVersion);
-  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false}).ok,false);
-  const second=e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:first.leaderboardVersion}).data.patient;
-  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:first.leaderboardVersion}).ok,false);
-  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:second.leaderboardVersion}).ok,true);
+  const first=e.call('admin.leaderboard',{patientId:p.id,enabled:false}).data.patient;
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false}).data.patient.leaderboardVersion,first.leaderboardVersion);
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:true}).ok,false);
+  const second=e.call('admin.leaderboard',{patientId:p.id,enabled:true,previousVersion:first.leaderboardVersion}).data.patient;
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:first.leaderboardVersion}).ok,false);
+  assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false,previousVersion:second.leaderboardVersion}).ok,true);
   e.call('admin.patientStatus',{patientId:p.id,deleted:true,requestId:randomUUID()});
   assert.equal(e.call('admin.leaderboard',{patientId:p.id,enabled:false}).ok,false);
   assert.deepEqual(e.call('leaderboard').data.rows,[]);
+});
+
+test('admin roster shell totals match each patient bootstrap and preserve revision/deletion rules',()=>{
+  const e=environment(),p=e.patient('shell-A'),q=e.patient('shell-B'),date=dayKey();
+  assert.equal(e.call('checkin',{},p.identity).ok,true);
+  assert.equal(e.call('health.measure',{height:160,weight:60},p.identity).ok,true);
+  const record={kind:'exercise',date,mode:'steps',value:7500,activity:'步行',recognized:7500};
+  const saved=e.call('save',{record,requestId:randomUUID(),image},p.identity);assert.equal(saved.ok,true,saved.error);
+  let rows=e.call('admin.patients');assert.equal(rows.ok,true,rows.error);
+  assert.equal(rows.data.patients.find(r=>r.id===p.id).shellTotal,6);
+  assert.equal(rows.data.patients.find(r=>r.id===q.id).shellTotal,0);
+  const revised=e.call('save',{record:{...record,value:5000},previousId:saved.data.record.id,requestId:randomUUID()},p.identity);assert.equal(revised.ok,true,revised.error);
+  assert.equal(e.call('admin.patients').data.patients.find(r=>r.id===p.id).shellTotal,5);
+  assert.equal(e.call('admin.recordStatus',{id:revised.data.record.id,deleted:true,requestId:randomUUID()}).ok,true);
+  assert.equal(e.call('admin.patients').data.patients.find(r=>r.id===p.id).shellTotal,4);
+  assert.equal(e.call('admin.patients',{},q.identity).ok,false);
 });
