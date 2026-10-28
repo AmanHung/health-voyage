@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';
-import {environment} from './helpers/google-environment.mjs';import {dayKey} from '../google/domain.js';
-function setup(){const e=environment(),p=e.patient('CARE-A'),q=e.patient('CARE-B');const record={kind:'medicine',date:dayKey(),status:'有疑問'};const result=e.call('save',{record,requestId:randomUUID()},p.identity);assert.equal(result.ok,true,result.error);return {e,p,q,r:result.data.record,record};}
+import {environment} from './helpers/google-environment.mjs';import {CARE_RECORD_NEW_SINCE} from '../lib/care.ts';
+function setup(){const e=environment({now:new Date(Date.parse(CARE_RECORD_NEW_SINCE)+1000).toISOString()}),p=e.patient('CARE-A'),q=e.patient('CARE-B');const record={kind:'medicine',date:CARE_RECORD_NEW_SINCE.slice(0,10),status:'有疑問'};const result=e.call('save',{record,requestId:randomUUID()},p.identity);assert.equal(result.ok,true,result.error);return {e,p,q,r:result.data.record,record};}
 const body=(p,r,extra={})=>({patientId:p.id,date:r.date,kind:r.kind,sourceRecordId:r.id,body:'請記下問題，回診時與照護團隊討論。',withdrawn:false,previousAdviceId:null,requestId:randomUUID(),...extra});
 function publish(e,p,r,extra={},auth){const payload=body(p,r,extra),result=e.call('care.publish',payload,auth);assert.equal(result.ok,true,result.error);return {payload,a:result.data.advice};}
 function otherAdmin(e){const accounts=e.call('admin.accounts').data;e.call('admin.accountChange',{email:'other@example.test',operation:'add',version:accounts.version,requestId:randomUUID()});return e.auth('other');}
@@ -49,4 +49,19 @@ test('advice allows paragraphs, bounds length, and cannot write through deleted 
 test('empty care reads do not create sheets and lock failures cannot acknowledge or publish',()=>{
  const {e,p,r}=setup();const book=e.books.get(e.properties.get('RECORD_SHEET_ID'));assert.equal(e.call('bootstrap',{},p.identity).data.care.advice.length,0);assert.equal(book.getSheetByName('CareAdvice'),undefined);assert.equal(book.getSheetByName('CareReads'),undefined);
  e.context.LockService.getScriptLock=()=>({tryLock:()=>false,releaseLock(){}});assert.equal(e.call('care.publish',body(p,r)).ok,false);assert.equal(e.call('care.viewRecord',{patientId:p.id,recordId:r.id}).ok,false);assert.equal(e.call('bootstrap',{},p.identity).ok,true);
+});
+
+test('baseline defaults existing records viewed without changing records, advice reads or creating CareReads',async()=>{
+ const {CARE_RECORD_NEW_SINCE}=await import('../lib/care.ts');const before=new Date(Date.parse(CARE_RECORD_NEW_SINCE)-1000).toISOString();
+ const e=environment({now:before}),p=e.patient('BASELINE');const record={kind:'medicine',date:CARE_RECORD_NEW_SINCE.slice(0,10),status:'有疑問'};const r=e.call('save',{record,requestId:randomUUID()},p.identity).data.record;
+ const {a}=publish(e,p,r);let row=e.call('admin.patients').data.patients.find(n=>n.id===p.id);assert.equal(row.recordCounts.medicine,1);assert.equal(row.unseenCounts.medicine,0);assert.ok(e.call('care.records',{patientId:p.id,kind:'medicine'}).data.viewedIds.includes(r.id));
+ assert.equal(e.books.get(e.properties.get('RECORD_SHEET_ID')).getSheetByName('CareReads'),undefined);const boot=e.call('bootstrap',{},p.identity).data;assert.equal(boot.records[0].id,r.id);assert.equal(boot.care.advice[0].id,a.id);assert.deepEqual(boot.care.readIds,[]);
+ e.setNow(new Date(Date.parse(CARE_RECORD_NEW_SINCE)+1000).toISOString());const revision=e.call('save',{record:{...record,status:'未服用'},previousId:r.id,requestId:randomUUID()},p.identity).data.record;
+ row=e.call('admin.patients').data.patients.find(n=>n.id===p.id);assert.equal(row.recordCounts.medicine,1);assert.equal(row.unseenCounts.medicine,1);assert.equal(e.call('care.records',{patientId:p.id,kind:'medicine'}).data.viewedIds.includes(revision.id),false);
+ assert.equal(e.call('care.viewRecord',{patientId:p.id,recordId:revision.id}).ok,true);assert.equal(e.call('admin.patients').data.patients.find(n=>n.id===p.id).unseenCounts.medicine,0);
+});
+test('baseline boundary is fixed; later backdated entries and malformed timestamps remain NEW',async()=>{
+ const {CARE_RECORD_NEW_SINCE,recordCareSummary,isBaselineCareRecord}=await import('../lib/care.ts');const r={id:'old',patientId:'p',kind:'medicine',date:'2026-10-01',createdAt:CARE_RECORD_NEW_SINCE};assert.equal(isBaselineCareRecord(r),true);
+ const later={...r,id:'later',date:'2026-09-30',createdAt:new Date(Date.parse(CARE_RECORD_NEW_SINCE)+1).toISOString()},invalid={...r,id:'invalid',date:'2026-09-29',createdAt:'invalid'};assert.equal(isBaselineCareRecord(later),false);assert.equal(isBaselineCareRecord(invalid),false);
+ const summary=recordCareSummary([r,later,invalid],[],'admin-A');assert.equal(summary.recordCounts.medicine,3);assert.equal(summary.unseenCounts.medicine,2);assert.equal(recordCareSummary([r,later],[{type:'record',actor:'admin-A',versionId:later.id}],'admin-B').unseenCounts.medicine,1);
 });

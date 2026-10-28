@@ -1,5 +1,5 @@
 import {careService} from './care-service.js';
-import {recordCareSummary} from '../lib/care.ts';
+import {recordCareSummary,CARE_RECORD_NEW_SINCE} from '../lib/care.ts';
 import {healthService} from './health-service.js';
 import {healthState,healthBalance} from '../lib/health-rewards.ts';
 /* Runs only in Google Apps Script. Never import into the browser bundle. */
@@ -366,7 +366,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:13,capabilities:['careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:14,recordNewSince:CARE_RECORD_NEW_SINCE,capabilities:['recordNewBaseline','careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');
