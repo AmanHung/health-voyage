@@ -12,8 +12,8 @@ export function ActivityGoalCard({history=[],records,today,onRecord}:{history?:A
   const headline=day.achieved?'今天的目標，達成了':!p.current?'找到適合自己的步調':p.current.steps===null?'這段時間，照自己的步調':day.steps===null?'今天，從一份紀錄開始':'每一步，都在向前';
   return <section className={`activity-card ${day.achieved?'achieved':''}`} aria-label="我的活動目標">
     <div className="activity-ring" style={{'--activity-progress':`${day.percent*3.6}deg`} as CSSProperties} role="img" aria-label={p.current?.steps?`今日步數目標進度 ${day.percent}％${day.steps===null?'，尚無步數紀錄':''}`:'尚未啟用步數目標'}><div><Footprints aria-hidden/><strong>{day.steps===null?'—':number(day.steps)}</strong><span>{day.steps===null?'尚無步數紀錄':'今日已記錄步數'}</span></div></div>
-    <div className="activity-copy"><span className="voyage-eyebrow"><Target aria-hidden/>我的活動目標</span><h2>{headline}</h2><p>{p.current?.steps?<>{p.current.id==="default-5000"?"預設每日目標：":"與照護團隊約定："}<strong>每天 {number(p.current.steps)} 步</strong></>:p.current?'目前暫停步數目標，仍可留下活動紀錄。':'先和照護團隊討論，再設定適合您的活動目標。'}</p>
-      {p.current?.steps&&<p className="activity-encouragement">{day.achieved?'今天的努力已留下，不必為了數字再加量。':day.steps!==null?`已記錄 ${number(day.steps)} 步，依自己的狀況繼續。`:'上傳截圖，核對並保存今天的步數。'}</p>}
+    <div className="activity-copy"><span className="voyage-eyebrow"><Target aria-hidden/>我的活動目標</span><h2>{headline}</h2>
+      <p className="activity-encouragement">讓我們一起用運動寫日記</p>
       {p.upcoming&&<p className="activity-upcoming">{p.upcoming.effectiveFrom.replaceAll('-','／')} 起：{goalText(p.upcoming)}</p>}
 
     </div>

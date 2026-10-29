@@ -14,11 +14,12 @@ const {outputFiles}=await build({stdin:{contents:`import React from 'react';
 const compiled={exports:{}};
 new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
 const html=compiled.exports;
-test('patient goal defaults to 5000 and preserves explicit targets and pauses',()=>{
- assert.match(html.empty,/預設每日目標/);assert.match(html.empty,/5,000/);assert.match(html.empty,/尚無步數紀錄/);
+test('patient card uses exercise diary copy while preserving progress, targets and pauses',()=>{
+ assert.match(html.empty,/尚無步數紀錄/);assert.match(html.empty,/今日步數目標進度 0％/);
  assert.match(html.empty,/activity-illustration/);assert.match(html.empty,/voyage\/activity.svg/);
- assert.match(html.achieved,/今天的目標，達成了/);assert.match(html.achieved,/3,000/);assert.match(html.achieved,/不必為了數字再加量/);
- assert.match(html.paused,/暫停步數目標/);assert.doesNotMatch(html.paused,/每天 5,000/);
+ assert.match(html.achieved,/今天的目標，達成了/);assert.match(html.achieved,/3,000/);assert.match(html.achieved,/今日步數目標進度 100％/);
+ assert.match(html.paused,/這段時間，照自己的步調/);assert.match(html.paused,/尚未啟用步數目標/);
+ for(const state of [html.empty,html.achieved,html.paused]){assert.match(state,/讓我們一起用運動寫日記/);assert.doesNotMatch(state,/與照護團隊約定|預設每日目標|每天 [\d,]+ 步|上傳截圖，核對並保存今天的步數/);}
 });
 test('admin target starts blank and explains effective date without assigning a universal target',()=>{
   assert.match(html.admin,/每日目標步數/);assert.match(html.admin,/value=""/);assert.match(html.admin,/首次設定於當日生效/);
