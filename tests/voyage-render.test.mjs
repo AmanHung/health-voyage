@@ -18,7 +18,7 @@ const compiled={exports:{}};
 new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
 const html=compiled.exports;
 test('home exposes all three record actions and zero-state progress honestly',()=>{
-  for(const label of ['記錄步數','拍照記錄','回報情形'])assert.match(html.home,new RegExp(label));
+  for(const label of ['記錄運動','拍照記錄','回報情形'])assert.match(html.home,new RegExp(label));
   assert.match(html.home,/0／3 已記錄/);assert.doesNotMatch(html.home,/已抵達|已記錄，點此/);
   assert.match(html.home,/測試旅人/);assert.match(html.home,/health-voyage\/voyage\/coast.webp/);
 });

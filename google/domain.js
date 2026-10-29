@@ -1,4 +1,5 @@
 import {avatarValue} from '../lib/avatar.ts';
+import {EXERCISE_OPTIONS,EXERCISE_DURATIONS} from '../lib/exercise.ts';
 // Pure validation and aggregation shared with the Apps Script backend tests.
 import {MEAL_TYPES,COOKING_METHODS,STAPLE_AMOUNTS,VEGETABLE_AMOUNTS,PROTEIN_AMOUNTS,SOUP_AMOUNTS,SIDES,PORTION_SIZES,PROCESSED_FOOD,EATEN as INTERVIEW_EATEN,DRINKS as INTERVIEW_DRINKS,mealQuestionKeys,groupsFromInterview} from '../lib/meal-interview.ts';
 export const GROUPS = ['主食', '豆魚蛋肉', '蔬菜', '水果', '乳品', '不確定'];
@@ -24,6 +25,19 @@ export function validateRecord(input, today) {
   const kind = input.kind;
   requireValue(['exercise', 'meal', 'medicine'].includes(kind), '紀錄類型不正確。');
   if (kind === 'exercise') {
+    if(input.exerciseVersion===2){
+      requireValue(Array.isArray(input.activities)&&input.activities.length>0&&input.activities.length<=EXERCISE_OPTIONS.length,'請勾選運動項目。');
+      const seen=new Set();const activities=input.activities.map(a=>{
+        requireValue(a&&EXERCISE_OPTIONS.some(o=>o.id===a.id)&&!seen.has(a.id),'運動項目不正確或重複。');seen.add(a.id);
+        requireValue(a.duration==null||a.duration===''||a.id!=='walk'&&EXERCISE_DURATIONS.includes(a.duration),'請選擇有效的運動時間。');
+        return {id:a.id,...(a.id==='other'?{name:cleanText(a.name,1,40,'其他運動名稱')}:{}),...(a.id!=='walk'&&a.duration?{duration:a.duration}:{})};
+      });
+      const walking=seen.has('walk'),value=walking&&input.value!=null?input.value:undefined;
+      requireValue(value===undefined||Number.isInteger(value)&&value>=0&&value<=100000,'步數須為 0 至 100,000 的整數。');
+      const recognized=walking&&input.recognized!=null?input.recognized:null;
+      requireValue(recognized===null||Number.isInteger(recognized)&&recognized>=0&&recognized<=100000,'辨識數值不正確。');
+      return {kind,date,exerciseVersion:2,activities,mode:walking?'steps':'activities',...(value===undefined?{}:{value}),activity:activities.map(a=>a.id).join(','),recognized,manuallyCorrected:recognized!==null&&recognized!==value};
+    }
     const mode = input.mode;
     requireValue(['steps', 'minutes'].includes(mode), '請選擇步數或分鐘。');
     requireValue(Number.isInteger(input.value) && input.value >= 0 && input.value <= (mode === 'steps' ? 100000 : 1440), '請確認步數或分鐘。');
@@ -71,7 +85,7 @@ export function leaderboardEnabled(p) { return typeof p.leaderboardEnabled === '
 export function leaderboard(patients, records, month) {
   return patients.filter(p => p.active && !p.deletedAt && leaderboardEnabled(p)).map(p => ({
     nickname: p.nickname, avatar: avatarValue(p.avatar),
-    steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)).reduce((sum, r) => sum + r.value, 0),
+    steps: latest(records.filter(r => r.patientId === p.id)).filter(r => r.kind === 'exercise' && r.mode === 'steps' && r.date.startsWith(month)&&Number.isInteger(r.value)&&r.value>=0&&r.value<=100000).reduce((sum, r) => sum + r.value, 0),
   })).sort((a,b) => b.steps - a.steps).slice(0, 20);
 }
 export function feedback(meal) {

@@ -1,3 +1,4 @@
+import {exerciseSummary} from './exercise.ts';
 import type {RecordItem} from '../production/api';
 export function adminRecordGroups(records:RecordItem[]) {
   const groups=new Map<string,RecordItem[]>();
@@ -5,5 +6,5 @@ export function adminRecordGroups(records:RecordItem[]) {
   return [...groups.values()].map(versions=>({current:versions[versions.length-1],versions})).sort((a,b)=>b.current.date.localeCompare(a.current.date));
 }
 export function recordSummary(r:RecordItem) {
-  return r.kind==='exercise'?`${r.value?.toLocaleString('zh-TW')} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status||'';
+  return r.kind==='exercise'?exerciseSummary(r):r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status||'';
 }

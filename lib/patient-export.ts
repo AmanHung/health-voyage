@@ -1,4 +1,5 @@
 import type { AdminPatient, RecordItem } from '../production/api';
+import {exerciseSummary,exerciseReward,exercisePhotoKeys,activityLabel} from './exercise.ts';
 
 type Cell = string | number;
 export type ExportSheet = { name: string; headers: string[]; rows: Cell[][] };
@@ -32,7 +33,7 @@ export function patientExportSheets(patient: AdminPatient, records: RecordItem[]
       ['用藥說明', '回報完成不代表全部已服用；實際狀態請看服藥明細。尚未回報的服藥項目不在明細內。'],
       ['空白欄位', '代表未記錄或不適用；照片不包含在此檔案。'],
     ] },
-    { name: '運動紀錄', headers: [...common, '紀錄方式', '確認數值', '單位', '活動', '辨識原始數值', '照片上傳狀態', '回饋'], rows: exercise.map(r => [...base(r), r.mode === 'steps' ? '步數' : '運動時間', r.value ?? '', r.mode === 'steps' ? '步' : '分鐘', r.activity ?? '', r.recognized ?? '', r.hasImage ? '已上傳' : '未上傳', r.feedback ?? '']) },
+    { name: '運動紀錄', headers: [...common, '紀錄方式', '確認數值', '單位', '活動', '辨識原始數值', '照片上傳狀態', '回饋','各項運動與時間','各項照片上傳狀態','運動獎勵（每日最多 2 顆）'], rows: exercise.map(r => [...base(r), r.mode === 'steps' ? '步數' : r.exerciseVersion===2?'多項運動':'運動時間', r.value ?? '', r.mode === 'steps' ? '步' : r.exerciseVersion===2?'':'分鐘', r.exerciseVersion===2?r.activities?.map(activityLabel).join('、')||'':r.activity ?? '', r.recognized ?? '', r.hasImage ? '已上傳' : '未上傳', r.feedback ?? '',exerciseSummary(r),r.exerciseVersion===2?r.activities?.map(a=>`${activityLabel(a)}：${exercisePhotoKeys(r).includes(a.id)?'已上傳':'未上傳'}`).join('；')||'':'',exerciseReward(r).stars]) },
     { name: '飲食紀錄', headers: [...common, '餐別', '餐點名稱', '餐點類型', '食物分類', '烹調方式', '主食份量', '蔬菜份量', '蛋白質份量', '喝湯份量', '配餐', '原本份量', '加工食品', '實際吃下份量', '飲料', '飲食限制', '照片上傳狀態', '回饋'], rows: meals.map(r => {
       const m = r.mealDetails;
       return [...base(r), r.period ?? '', m?.mealName ?? '', m?.mealType ?? '', r.groups?.join('、') ?? '', m?.cookingMethod ?? '', m?.stapleAmount ?? '', m?.vegetableAmount ?? '', m?.proteinAmount ?? '', m?.soupAmount ?? '', m?.sideDish ?? '', m?.portionSize ?? '', m?.processedFood ?? '', m?.eaten ?? r.eaten ?? '', m?.drink ?? r.drink ?? '', flag(m?.restrictedDiet ?? r.restrictedDiet), r.hasImage ? '已上傳' : '未上傳', r.feedback ?? ''];

@@ -1,4 +1,5 @@
 import {careService} from './care-service.js';
+import {legacyExerciseKey} from '../lib/exercise.ts';
 import {recordCareSummary,CARE_RECORD_NEW_SINCE} from '../lib/care.ts';
 import {healthService} from './health-service.js';
 import {healthState,healthBalance} from '../lib/health-rewards.ts';
@@ -100,7 +101,31 @@ function person(identity) {
 }
 function publicPerson(p) { return {id:p.id, nickname:p.nickname, avatar:avatarValue(p.avatar), participating:p.participating, leaderboardEnabled:leaderboardEnabled(p), isTest:p.isTest, active:p.active&&!p.deletedAt,healthRewards:healthState(p),checkinDays:p.checkinDays||[],activityGoals:(p.activityGoals||[]).map(g=>({id:g.id,steps:g.steps,effectiveFrom:g.effectiveFrom}))}; }
 function adminPerson(p) { return {...publicPerson(p),name:p.name,bound:!!p.subject,deletedAt:p.deletedAt||null,leaderboardVersion:p.leaderboardVersion||null,stateVersion:p.stateChanges?.slice(-1)[0]?.id||null}; }
-function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
+function publicRecord(r) { const o = {...r, hasImage: !!r.imageFileId}; if(r.exerciseVersion===2){o.exercisePhotos=(r.exercisePhotos||[]).map(p=>({key:p.key,hasImage:!!p.fileId}));o.hasImage=o.exercisePhotos.some(p=>p.hasImage);} delete o.imageFileId; delete o._row; delete o.adminMutation; return o; }
+
+function saveExercises(value,payload,identity){
+  const requestId=cleanText(payload.requestId,16,64,'操作編號');
+  need(Array.isArray(payload.images)&&payload.images.length>0&&payload.images.length<=9,'請加入對應的運動照片或步數截圖。');
+  const keys=new Set();
+  const images=payload.images.map(p=>{need(p&&value.activities.some(a=>a.id===p.key)&&!keys.has(p.key),'照片與運動項目不一致或重複。');keys.add(p.key);need(typeof p.dataUrl==='string'&&p.dataUrl||p.reuse===true,'請確認照片。');return {key:p.key,...(p.dataUrl?{image:validateImage(p.dataUrl)}:{reuse:true})};});
+  return locked(()=>{
+    const current=person(identity),all=read('Records',current.id),fingerprint=hash(JSON.stringify([value,payload.images,payload.previousId||null]));
+    const retry=all.find(r=>r.requestId===requestId);
+    if(retry){need(retry.fingerprint===fingerprint,'請重新提交更新後的紀錄。');need(latest(all).some(r=>r.id===retry.id),'紀錄已更新或刪除，請重新整理後再確認。');return {record:publicRecord(retry)};}
+    const previous=latest(all).find(r=>r.kind==='exercise'&&r.date===value.date);
+    need((previous?.id||null)===(payload.previousId||null),'紀錄已更新，請重新整理後再修改。');
+    // Reuse only this patient's immediate prior daily version and the same activity key.
+    const reuse=previous?.exerciseVersion===2?previous.exercisePhotos||[]:previous?.imageFileId?[{key:legacyExerciseKey(previous),fileId:previous.imageFileId,width:previous.imageWidth,height:previous.imageHeight}]:[];
+    const resolved=images.map(p=>{if(p.image)return p;const old=reuse.find(o=>o.key===p.key&&o.fileId);need(old,'找不到可沿用的這項運動照片，請重新上傳。');return {key:p.key,old};});
+    const made=[];let committed=false;
+    try{
+      const folder=resolved.some(p=>p.image)?privateFolder():null;
+      const exercisePhotos=resolved.map(p=>{if(p.old)return {...p.old};const file=folder.createFile(Utilities.newBlob(p.image.bytes,'image/jpeg',current.id+'_'+value.date+'_'+p.key+'_'+Utilities.getUuid()+'.jpg'));made.push(file);return {key:p.key,fileId:file.getId(),width:p.image.width,height:p.image.height};});
+      const first=exercisePhotos[0],record={...value,id:Utilities.getUuid(),patientId:current.id,createdAt:new Date().toISOString(),previousId:previous?.id||null,requestId,fingerprint,exercisePhotos,imageFileId:first.fileId,imageWidth:first.width,imageHeight:first.height};
+      write('Records',record);committed=true;audit(identity.subject,'record.save',record.id,{exerciseVersion:2,photoCount:exercisePhotos.length});return {record:publicRecord(record)};
+    }catch(e){if(!committed)for(const file of made){try{file.setTrashed(true);}catch{}}throw e;}
+  });
+}
 function visibleRecordIds(records) {
   const byId=new Map(records.map(r=>[r.id,r])),visible=new Set();
   for(const current of latest(records)) {
@@ -136,7 +161,7 @@ export function validateImage(data) {
 }
 const medication=medicationService({read,write,need,cleanText,locked,hash,audit,publicRecord,latest,person});
 const health=healthService({read,write,need,locked,audit,person,publicPerson,scoreRecords:id=>{const plans=medication.histories(id);return latest(read('Records',id)).map(r=>medication.decorate(r,plans));}});
-const care=careService({read,write,need,locked,audit,person,cleanText,hash});
+const care=careService({read,write,need,locked,audit,person,cleanText,hash,publicRecord});
 export function dispatch(action, payload, identity) {
   checkRate(identity.subject);
   const today = dayKey();
@@ -314,7 +339,9 @@ export function dispatch(action, payload, identity) {
     const all=read('Records'),r=all.find(r=>r.id===payload.id);need(r && r.imageFileId,'找不到照片。');
     if(identity.role!=='admin') {const p=person(identity);need(r.patientId===p.id&&visibleRecordIds(all.filter(r=>r.patientId===p.id)).has(r.id),'找不到照片。');}
     privateFolder();
-    const file=DriveApp.getFileById(r.imageFileId);
+    const slot=r.exerciseVersion===2?(payload.key===undefined?r.exercisePhotos?.[0]:r.exercisePhotos?.find(p=>p.key===payload.key)):null;
+    if(r.exerciseVersion===2)need(slot?.fileId,'找不到這項運動照片。');
+    const file=DriveApp.getFileById(slot?.fileId||r.imageFileId);
     need(file.getSize()<=800000,'照片大小異常。');
     return {dataUrl:'data:image/jpeg;base64,'+Utilities.base64Encode(file.getBlob().getBytes())};
   }
@@ -333,6 +360,7 @@ export function dispatch(action, payload, identity) {
   if (action === 'leaderboard') {if(identity.role!=='admin')person(identity);return {rows:leaderboard(read('Patients'),read('Records'),today.slice(0,7))};}
   if (action === 'save') {
     const value=validateRecord(payload.record,today), requestId=cleanText(payload.requestId,16,64,'操作編號');
+    if(value.kind==='exercise'&&value.exerciseVersion===2)return saveExercises(value,payload,identity);
     const image = payload.image ? validateImage(payload.image) : null;
     need(value.kind==='medicine' || image || typeof payload.previousId==='string','請選取照片或截圖。');
     return locked(()=> {
@@ -343,6 +371,7 @@ export function dispatch(action, payload, identity) {
       if(value.kind==='medicine')need(!medication.histories(current.id).some(p=>p.effectiveFrom.slice(0,10)<=value.date),'請改用逐項用藥回報，舊版每日回報不會覆蓋清單。');
       const dayRecord=latest(all).find(r=>r.date===value.date&&r.kind===value.kind);
       need((dayRecord?.id||null)===(payload.previousId||null),'紀錄已更新，請重新整理後再修改。');
+      if(value.kind==='exercise')need(dayRecord?.exerciseVersion!==2,'運動表單已更新，請重新整理後再修改。');
       let imageFileId=dayRecord?.imageFileId||null;
       if(image){ const folder=privateFolder(); const file=folder.createFile(Utilities.newBlob(image.bytes,'image/jpeg',current.id+'_'+value.date+'_'+Utilities.getUuid()+'.jpg')); imageFileId=file.getId(); }
       const record={...value,id:Utilities.getUuid(),patientId:current.id,createdAt:new Date().toISOString(),previousId:dayRecord?.id||null,requestId,fingerprint,imageFileId,imageWidth:image?.width||dayRecord?.imageWidth||null,imageHeight:image?.height||dayRecord?.imageHeight||null};
@@ -366,10 +395,10 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:14,recordNewSince:CARE_RECORD_NEW_SINCE,capabilities:['recordNewBaseline','careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:15,recordNewSince:CARE_RECORD_NEW_SINCE,capabilities:['multiExercisePhotos','exerciseRewardsV2','recordNewBaseline','careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
-    need(e?.postData?.contents && e.postData.contents.length<=1250000,'上傳資料太大或格式不正確。');
+    need(e?.postData?.contents && e.postData.contents.length<=10500000,'上傳資料太大或格式不正確。');
     const body=JSON.parse(e.postData.contents);
     const identity=authenticate(body.auth);
     need(requestAllowed(body.action,body.payload||{},identity),'網站尚未開放，請稍後再試。');

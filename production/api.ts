@@ -1,4 +1,5 @@
 import type {CareInbox,CareKind} from '../lib/care';
+import type {ExerciseActivity,ExercisePhoto} from '../lib/exercise';
 import type {HealthRewards} from '../lib/health-rewards';
 import type {DoseReport} from '../lib/medication';
 import {config} from './config';
@@ -7,7 +8,7 @@ import type {ActivityGoal} from '../lib/activity-goal';
 export type Profile = {id:string;nickname:string;avatar?:string;leaderboardEnabled?:boolean;participating:boolean;isTest:boolean;active:boolean;healthRewards?:HealthRewards;checkinDays?:string[];activityGoals?:ActivityGoal[]};
 export type AdminPatient = Profile&{name:string;bound:boolean;shellTotal?:number;recordCounts?:Record<CareKind,number>;unseenCounts?:Record<CareKind,number>;deletedAt?:string|null;leaderboardVersion?:string|null;stateVersion?:string|null};
 import type {MealInterview} from '../lib/meal-interview';
-export type RecordItem = {id:string;patientId:string;date:string;kind:'exercise'|'meal'|'medicine';createdAt:string;hasImage:boolean;previousId?:string|null;deletedAt?:string|null;mode?:'steps'|'minutes';value?:number;activity?:string;recognized?:number|null;period?:string;groups?:string[];eaten?:string;drink?:string;restrictedDiet?:boolean|null;mealDetails?:MealInterview;feedback?:string;status?:string;medicationDoses?:DoseReport[];medicationComplete?:boolean;medicationExpected?:number;medicationNoScheduled?:boolean};
+export type RecordItem = {id:string;patientId:string;date:string;kind:'exercise'|'meal'|'medicine';createdAt:string;hasImage:boolean;previousId?:string|null;deletedAt?:string|null;exerciseVersion?:number;activities?:ExerciseActivity[];exercisePhotos?:ExercisePhoto[];mode?:'steps'|'minutes'|'activities';value?:number;activity?:string;recognized?:number|null;period?:string;groups?:string[];eaten?:string;drink?:string;restrictedDiet?:boolean|null;mealDetails?:MealInterview;feedback?:string;status?:string;medicationDoses?:DoseReport[];medicationComplete?:boolean;medicationExpected?:number;medicationNoScheduled?:boolean};
 export type Bootstrap = {care?:CareInbox;role:'admin'|'patient'|'pharmacist';today:string;bound?:boolean;profile?:Profile;records?:RecordItem[];email?:string;patients?:{id:string;name:string}[]};
 // Cross-origin simple POST: don't use no-cors/JSONP or put credentials in a URL.
 // A blocked response is a failure, never interpreted as a successful write.

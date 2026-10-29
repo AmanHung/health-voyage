@@ -1,5 +1,5 @@
 import {currentCareRecords,publishedCareAdvice,careKinds,careKey,baselineCareRecordIds} from '../lib/care.ts';
-export function careService({read,write,need,locked,audit,person,cleanText,hash}){
+export function careService({read,write,need,locked,audit,person,cleanText,hash,publicRecord}){
  const publicAdvice=a=>({id:a.id,patientId:a.patientId,date:a.date,kind:a.kind,sourceRecordId:a.sourceRecordId,body:a.body,publishedAt:a.publishedAt,withdrawn:a.withdrawn,authorLabel:'照護團隊'});
  function inbox(p,records){const history=read('CareAdvice',p.id),advice=publishedCareAdvice(history,records).map(publicAdvice);return {advice,readIds:read('CareReads',p.id).filter(r=>r.type==='advice'&&r.actor===p.subject).map(r=>r.versionId)};}
  function staff(identity){need(identity.role==='admin','只有管理員可以管理照護建議。');}
@@ -28,7 +28,7 @@ export function careService({read,write,need,locked,audit,person,cleanText,hash}
   if(action==='care.viewRecord')return view(payload,identity,'record');
   if(action==='care.readAdvice')return view(payload,identity,'advice');
   if(action==='care.list'){need(identity.role==='patient','只有個案可以讀取自己的建議。');const p=person(identity);return inbox(p,read('Records',p.id));}
-  if(action==='care.records'){staff(identity);const p=target(payload,false);const records=read('Records',p.id).filter(r=>r.kind===payload.kind);need(careKinds.includes(payload.kind),'請選擇紀錄種類。');return {records:records.map(r=>{const {imageFileId,_row,adminMutation,requestId,fingerprint,...rest}=r;return {...rest,hasImage:!!imageFileId};}),adviceHistory:read('CareAdvice',p.id).filter(a=>a.kind===payload.kind).map(publicAdvice),viewedIds:[...new Set([...baselineCareRecordIds(records),...read('CareReads',p.id).filter(r=>r.type==='record'&&r.actor===identity.subject).map(r=>r.versionId)])],readAdviceIds:[...new Set(read('CareReads',p.id).filter(r=>r.type==='advice'&&r.actor===p.subject).map(r=>r.versionId))]};}
+  if(action==='care.records'){staff(identity);const p=target(payload,false);const records=read('Records',p.id).filter(r=>r.kind===payload.kind);need(careKinds.includes(payload.kind),'請選擇紀錄種類。');return {records:records.map(r=>{const {requestId,fingerprint,...rest}=publicRecord(r);return rest;}),adviceHistory:read('CareAdvice',p.id).filter(a=>a.kind===payload.kind).map(publicAdvice),viewedIds:[...new Set([...baselineCareRecordIds(records),...read('CareReads',p.id).filter(r=>r.type==='record'&&r.actor===identity.subject).map(r=>r.versionId)])],readAdviceIds:[...new Set(read('CareReads',p.id).filter(r=>r.type==='advice'&&r.actor===p.subject).map(r=>r.versionId))]};}
   throw new Error('不支援此照護操作。');
  }
  return {dispatch,inbox};

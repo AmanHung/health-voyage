@@ -1,3 +1,5 @@
+import {ExerciseForm} from './exercise';
+import {exerciseSummary,activityLabel} from '../lib/exercise';
 import {CareProvider,CareInbox,RecordCareAdvice,useCare} from './care';
 import {CareAdminDirectory} from './care-admin';
 import {HealthCards,RewardShop,AppointmentLoginReminder} from './health-rewards';
@@ -47,13 +49,13 @@ function AppContent({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;init
   const auth=initialAuth;const [data,setData]=useState<Bootstrap>(initialData),[view,setView]=useState<View>(initialData.role==='patient'?'home':'admin');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [modal,setModal]=useState<{kind:RecordItem['kind'];record?:RecordItem}|null>(null);
-  const [image,setImage]=useState<string|null>(null),[rows,setRows]=useState<StepRow[]>([]),[rankError,setRankError]=useState('');
+  const [image,setImage]=useState<{label:string;dataUrl:string}[]|null>(null),[rows,setRows]=useState<StepRow[]>([]),[rankError,setRankError]=useState('');
   const [celebration,setCelebration]=useState(0);
   const [rankLoading,setRankLoading]=useState(true),[rankRetry,setRankRetry]=useState(0);
   async function refresh(){if(!auth)return;const result=await api<Bootstrap>(auth,'bootstrap');setData(result);if(result.care)care.replace(result.care);}
   useEffect(()=>{if(!auth||!data?.bound||view!=='exercise')return;let active=true;setRankError('');setRankLoading(true);api<{rows:typeof rows}>(auth,'leaderboard').then(r=>{if(active)setRows(r.rows);}).catch(()=>{if(active)setRankError('排行榜暫時無法讀取。');}).finally(()=>{if(active)setRankLoading(false);});return()=>{active=false;};},[auth,data,view,rankRetry]);
   function logout(){onSignedOut();}
-  async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id});setImage(result.dataUrl);}catch(e){setError(message(e));}finally{setBusy(false);}}
+  async function photo(r:RecordItem){if(!auth)return;setBusy(true);setError('');try{const keys=r.exerciseVersion===2?r.exercisePhotos?.filter(p=>p.hasImage).map(p=>p.key)||[]:[];const photos=await Promise.all((keys.length?keys:[undefined]).map(async key=>{const result=await api<{dataUrl:string}>(auth,'image',{id:r.id,...(key?{key}:{})});return {label:key?r.activities?.find(a=>a.id===key)?activityLabel(r.activities.find(a=>a.id===key)!):key:'紀錄照片',dataUrl:result.dataUrl};}));setImage(photos);}catch(e){setError(message(e));}finally{setBusy(false);}}
   const records=data?.records||[],profile=data?.profile;
   useEffect(()=>{care.setRecords(records);},[data.records]);
   const progress=data?voyageProgress(records,data.today):null;
@@ -83,8 +85,8 @@ function AppContent({initialAuth,initialData,onSignedOut}:{initialAuth:Auth;init
     </main>
     {data?.role==='patient'&&data.bound&&view!=='admin'&&<VoyageNavigation view={view} onNavigate={navigate}/>}
     {data.role==='patient'&&data.bound&&profile&&<AppointmentLoginReminder profile={profile} today={data.today} ready={checkinSettled&&care.settled}/>}
-    {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className={`prod-dialog voyage-dialog ${modal.kind}`}><span className="voyage-eyebrow">今天的小行動</span><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription>{modal.kind==='medicine'?<MedicationPatient auth={auth} today={data.today} initialDate={modal.record?.date} onSaved={r=>savedRecord(r,false)} legacy={(date,currentRecord)=><RecordForm key={date} auth={auth} kind="medicine" today={data.today} initialDate={date} record={currentRecord} onSaved={savedRecord}/>}/>:<RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={savedRecord}/>}</DialogContent></Dialog>}
-    {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><img src={image} alt="已保存的紀錄照片" className="prod-photo"/></DialogContent></Dialog>}
+    {modal&&auth&&data&&<Dialog open onOpenChange={open=>{if(!open)setModal(null);}}><DialogContent className={`prod-dialog voyage-dialog ${modal.kind}`}><span className="voyage-eyebrow">今天的小行動</span><DialogTitle>{taskNames[modal.kind]}紀錄</DialogTitle><DialogDescription>核對後儲存，可再修改。</DialogDescription>{modal.kind==='medicine'?<MedicationPatient auth={auth} today={data.today} initialDate={modal.record?.date} onSaved={r=>savedRecord(r,false)} legacy={(date,currentRecord)=><RecordForm key={date} auth={auth} kind="medicine" today={data.today} initialDate={date} record={currentRecord} onSaved={savedRecord}/>}/>:modal.kind==='exercise'?<ExerciseForm auth={auth} today={data.today} record={modal.record} onSaved={savedRecord}/>:<RecordForm auth={auth} kind={modal.kind} today={data.today} record={modal.record} onSaved={savedRecord}/>}</DialogContent></Dialog>}
+    {image&&<Dialog open onOpenChange={open=>{if(!open)setImage(null);}}><DialogContent className="prod-dialog"><DialogTitle>已保存的照片</DialogTitle><DialogDescription>此為壓縮後的紀錄圖片。</DialogDescription><div className="exercise-photo-gallery">{image.map((p,i)=><section key={i}><h3>{p.label}</h3><img src={p.dataUrl} alt={p.label} className="prod-photo"/></section>)}</div></DialogContent></Dialog>}
   </div></JourneyProvider>;
 }
 function Binding({auth,onBound}:{auth:Auth;onBound:()=>Promise<void>}){
@@ -99,7 +101,7 @@ function Account({auth,profile,onSaved}:{auth:Auth;profile:Profile;onSaved:(p:Pr
   return <form className="surface prod-form" onSubmit={save}><h1>我的帳號</h1><label>排行榜暱稱<Input value={nickname} onChange={e=>setNickname(e.target.value)} required minLength={2} maxLength={12}/></label><AvatarPicker value={avatar} onChange={setAvatar} disabled={busy||processing} onFile={file=>void selectAvatar(file)}/>{processing&&<p role="status">正在處理大頭照…</p>}{error&&<p className="prod-error" role="alert">{error}</p>}<Button type="submit" disabled={busy||processing}>{busy?'儲存中…':'儲存設定'}</Button></form>;
 }
 function RecordList({records,onPhoto,onEdit}:{records:RecordItem[];onPhoto:(r:RecordItem)=>void;onEdit?:(r:RecordItem)=>void}){
-  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?`${r.value?.toLocaleString()} ${r.mode==='steps'?'步':'分鐘'}`:r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p><MedicationHistory record={r}/><RecordCareAdvice record={r}/>{r.feedback&&<p className="prod-feedback"><strong>本餐回饋：</strong>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
+  return records.length?<div className="prod-records">{[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt)).map(r=><article key={r.id}><h3>{r.date}・{taskNames[r.kind]}</h3><p>{r.kind==='exercise'?exerciseSummary(r):r.kind==='meal'?`${r.period}・${r.mealDetails?.mealName||r.groups?.join('、')}・${r.eaten}`:r.status}</p><MedicationHistory record={r}/><RecordCareAdvice record={r}/>{r.feedback&&<p className="prod-feedback"><strong>本餐回饋：</strong>{r.feedback}</p>}<div className="prod-actions">{r.hasImage&&<Button variant="outline" onClick={()=>onPhoto(r)}><Camera/>看照片</Button>}{onEdit&&<Button variant="outline" onClick={()=>onEdit(r)}>修改</Button>}</div></article>)}</div>:<p>還沒有紀錄。</p>;
 }
 function RecordForm({auth,kind,today,initialDate,record,onSaved}:{auth:Auth;kind:RecordItem['kind'];today:string;initialDate?:string;record?:RecordItem;onSaved:(r:RecordItem)=>void}){
   const [date,setDate]=useState(record?.date||initialDate||today),[value,setValue]=useState(record?.mode==='steps'?record.value?.toString()||'':'');

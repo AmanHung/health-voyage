@@ -12,7 +12,7 @@ import type {RecordItem} from './api';
 export type PatientView='home'|'exercise'|'journey'|'achievements'|'account'|'history'|'diet';
 const base=import.meta.env.BASE_URL;
 const tasks=[
-  {kind:'exercise',Icon:Footprints,title:'運動紀錄',detail:'記下今天走過的每一步',action:'記錄步數'},
+  {kind:'exercise',Icon:Footprints,title:'運動紀錄',detail:'留下步數與各種運動的足跡',action:'記錄運動'},
   {kind:'meal',Icon:Utensils,title:'飲食紀錄',detail:'從一餐開始，照顧自己',action:'拍照記錄'},
   {kind:'medicine',Icon:Pill,title:'用藥回報',detail:'如實記錄，安心提問',action:'回報情形'},
 ] as const;
