@@ -16,6 +16,7 @@ new Function('require','module','exports',outputFiles[0].text)(createRequire(imp
 const html=compiled.exports;
 test('patient goal defaults to 5000 and preserves explicit targets and pauses',()=>{
  assert.match(html.empty,/預設每日目標/);assert.match(html.empty,/5,000/);assert.match(html.empty,/尚無步數紀錄/);
+ assert.match(html.empty,/activity-illustration/);assert.match(html.empty,/voyage\/activity.svg/);
  assert.match(html.achieved,/今天的目標，達成了/);assert.match(html.achieved,/3,000/);assert.match(html.achieved,/不必為了數字再加量/);
  assert.match(html.paused,/暫停步數目標/);assert.doesNotMatch(html.paused,/每天 5,000/);
 });

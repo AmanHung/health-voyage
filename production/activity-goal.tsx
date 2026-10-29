@@ -17,7 +17,7 @@ export function ActivityGoalCard({history=[],records,today,onRecord}:{history?:A
       {p.upcoming&&<p className="activity-upcoming">{p.upcoming.effectiveFrom.replaceAll('-','／')} 起：{goalText(p.upcoming)}</p>}
 
     </div>
-
+    <img className="activity-illustration" src={import.meta.env.BASE_URL+'voyage/activity.svg'} alt="步行鞋、彈力帶與水壺的運動插圖" width="420" height="320"/>
   </section>;
 }
 
