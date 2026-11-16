@@ -6,8 +6,9 @@ export function healthService({read,write,need,locked,audit,person,publicPerson,
     today=dayKey();
     const staff=['admin','pharmacist'].includes(identity.role);
     let p;
-    if(action==='health.collect'||action==='health.read') {
+    if(action==='health.collect'||action==='health.read'||action==='health.adminRedeem') {
       need(staff,'只有照護團隊可以確認領取。');
+      if(action==='health.adminRedeem')need(identity.role==='admin','只有管理員可以直接兌換。');
       p=read('Patients').find(p=>p.id===payload.patientId&&p.active&&!p.deletedAt);
       need(p&&(identity.role==='admin'||p.pharmacists?.includes(identity.email)),'沒有此個案的權限。');
     } else {
@@ -15,7 +16,9 @@ export function healthService({read,write,need,locked,audit,person,publicPerson,
       p=person(identity);
     }
     const state=healthState(p),now=new Date().toISOString();
-    if(action==='health.read')return {profile:publicPerson(p),today};
+    const response=()=>({profile:publicPerson(p),today,...(staff?{shellTotal:healthBalance(scoreRecords(p.id),p.checkinDays||[],today,state).total}:{})});
+    if(action==='health.read')return response();
+    if(action==='health.status')return {redemptions:state.redemptions};
     let changed=false;
     if(action==='health.measure') {
       need(typeof payload.height==='number'&&Number.isFinite(payload.height)&&payload.height>=50&&payload.height<=250,'身高請填寫 50 至 250 公分。');
@@ -40,11 +43,21 @@ export function healthService({read,write,need,locked,audit,person,publicPerson,
         need(balance.total>=prize.goal,'尚未抵達此島嶼，請繼續累積貝殼解鎖。');
         state.redemptions.push({id:Utilities.getUuid(),prizeId:prize.id,goal:prize.goal,createdAt:now});changed=true;
       }
+    } else if(action==='health.adminRedeem') {
+      const prize=prizes.find(r=>r.id===payload.prizeId);need(prize,'找不到此獎品。');
+      let r=state.redemptions.find(r=>r.prizeId===prize.id);
+      if(!r) {
+        const balance=healthBalance(scoreRecords(p.id),p.checkinDays||[],today,state);
+        need(balance.total>=prize.goal,'尚未抵達此島嶼，請繼續累積貝殼解鎖。');
+        r={id:Utilities.getUuid(),prizeId:prize.id,goal:prize.goal,createdAt:now};
+        state.redemptions.push(r);
+      }
+      if(!r.collectedAt){r.collectedAt=now;changed=true;}
     } else if(action==='health.collect') {
       const r=state.redemptions.find(r=>r.id===payload.id);need(r,'找不到兌換紀錄。');
       if(!r.collectedAt){r.collectedAt=now;changed=true;}
     } else need(false,'不支援此操作。');
     if(changed){p.healthRewards=state;write('Patients',p,p._row);audit(identity.subject,action,p.id,{date:today,id:payload.id||null,prizeId:payload.prizeId||null});}
-    return {profile:publicPerson(p),today};
+    return response();
   });
 }

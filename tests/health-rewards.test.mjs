@@ -4,6 +4,65 @@ import {healthState,healthBalance,reminderState,prizes,appointmentBonus} from '.
 import {environment} from './helpers/google-environment.mjs';
 import {randomUUID} from 'node:crypto';
 
+function seedShells(e,a,total) {
+  const rows=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows;
+  const index=rows.findIndex(row=>row[0]===a.id),p=JSON.parse(rows[index][5]);
+  p.checkinDays=Array.from({length:total},(_,i)=>new Date(Date.UTC(2026,0,i+1)).toISOString().slice(0,10));
+  rows[index][5]=JSON.stringify(p);
+}
+test('admin directly redeems each unlocked prize once; patient status updates without application or shell spending',()=>{
+  for(const total of [29,30,49,50,79,80,199,200]){
+    const e=environment({now:'2026-10-15T03:00:00Z'}),a=e.patient('A'),b=e.patient('B');seedShells(e,a,total);
+    for(const prize of prizes){
+      const payload={patientId:a.id,prizeId:prize.id,total:99999,goal:0};
+      const result=e.call('health.adminRedeem',payload);assert.equal(result.ok,total>=prize.goal,`${total}/${prize.goal}`);
+      if(!result.ok)continue;
+      assert.equal(result.data.shellTotal,total);
+      const first=result.data.profile.healthRewards.redemptions.find(r=>r.prizeId===prize.id);
+      assert.ok(first.collectedAt);assert.equal(first.goal,prize.goal);
+      e.setNow('2026-10-15T04:00:00Z');
+      const repeat=e.call('health.adminRedeem',payload).data.profile.healthRewards.redemptions.filter(r=>r.prizeId===prize.id);
+      assert.deepEqual(repeat,[first]);
+      const status=e.call('health.status',{patientId:b.id},a.identity);assert.equal(status.ok,true);
+      assert.deepEqual(status.data.redemptions.find(r=>r.prizeId===prize.id),first);
+    }
+    assert.equal(e.call('health.read',{patientId:a.id}).data.shellTotal,total);
+    assert.equal(e.call('health.status',{patientId:a.id},b.identity).data.redemptions.length,0);
+    assert.equal(e.call('health.status',{}).ok,false);
+  }
+});
+test('direct redemption completes a legacy pending claim after scores decrease, retaining its ID and original timestamp',()=>{
+  const e=environment({now:'2026-10-15T03:00:00Z'}),a=e.patient('A');seedShells(e,a,30);
+  const original=e.call('health.redeem',{prizeId:'gift30'},a.identity).data.profile.healthRewards.redemptions[0];
+  seedShells(e,a,0);e.setNow('2026-10-15T04:00:00Z');
+  const result=e.call('health.adminRedeem',{patientId:a.id,prizeId:'gift30'});assert.equal(result.ok,true,result.error);
+  const claims=result.data.profile.healthRewards.redemptions;assert.equal(claims.length,1);
+  assert.equal(claims[0].id,original.id);assert.equal(claims[0].createdAt,original.createdAt);assert.ok(claims[0].collectedAt);
+  const audits=e.books.get(e.properties.get('RECORD_SHEET_ID')).getSheetByName('Audit').rows;
+  assert.equal(audits.filter(row=>row.includes('health.adminRedeem')).length,1);
+  assert.equal(e.call('health.adminRedeem',{patientId:a.id,prizeId:'gift30'}).ok,true);
+  assert.equal(audits.filter(row=>row.includes('health.adminRedeem')).length,1);
+});
+test('direct redemption rejects patients, assigned pharmacists, unknown prizes and inactive/deleted accounts; lock retries safely',()=>{
+  const e=environment({now:'2026-10-15T03:00:00Z'}),a=e.patient('A');seedShells(e,a,80);
+  const payload={patientId:a.id,prizeId:'gift30'};
+  assert.equal(e.call('health.adminRedeem',payload,a.identity).ok,false);
+  assert.equal(e.call('admin.medicationStaff',{patientId:a.id,emails:['other@example.test'],previousId:null,requestId:randomUUID()}).ok,true);
+  assert.equal(e.call('health.adminRedeem',payload,e.auth('other','google')).ok,false);
+  assert.equal(e.call('health.adminRedeem',{...payload,prizeId:'unknown'}).ok,false);
+  assert.equal(e.call('health.adminRedeem',{...payload,patientId:'missing'}).ok,false);
+  let blocked=true;e.context.LockService.getScriptLock=()=>({tryLock:()=>!blocked,releaseLock(){}});
+  assert.equal(e.call('health.adminRedeem',payload).ok,false);blocked=false;
+  assert.equal(e.call('health.status',{},a.identity).data.redemptions.length,0);
+  assert.equal(e.call('health.adminRedeem',payload).ok,true);
+  assert.equal(e.call('health.adminRedeem',payload).data.profile.healthRewards.redemptions.length,1);
+  const rows=e.books.get(e.properties.get('PATIENT_SHEET_ID')).getSheetByName('Patients').rows;
+  const index=rows.findIndex(row=>row[0]===a.id),p=JSON.parse(rows[index][5]);p.active=false;rows[index][5]=JSON.stringify(p);
+  assert.equal(e.call('health.adminRedeem',{...payload,prizeId:'body50'}).ok,false);
+  p.active=true;p.deletedAt='2026-10-15T04:00:00Z';rows[index][5]=JSON.stringify(p);
+  assert.equal(e.call('health.adminRedeem',{...payload,prizeId:'body50'}).ok,false);
+});
+
 test('monthly reward uses Taiwan month, retains revisions, ignores client patient/date and validates numbers',()=>{
   const e=environment({now:'2026-10-15T03:00:00Z'}),a=e.patient('A'),b=e.patient('B');
   const save=(height,weight)=>e.call('health.measure',{height,weight,date:'2099-01-01',patientId:b.id},a.identity);
