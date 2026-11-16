@@ -47,8 +47,6 @@ export function healthService({read,write,need,locked,audit,person,publicPerson,
       const prize=prizes.find(r=>r.id===payload.prizeId);need(prize,'找不到此獎品。');
       let r=state.redemptions.find(r=>r.prizeId===prize.id);
       if(!r) {
-        const balance=healthBalance(scoreRecords(p.id),p.checkinDays||[],today,state);
-        need(balance.total>=prize.goal,'尚未抵達此島嶼，請繼續累積貝殼解鎖。');
         r={id:Utilities.getUuid(),prizeId:prize.id,goal:prize.goal,createdAt:now};
         state.redemptions.push(r);
       }

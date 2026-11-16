@@ -11,7 +11,7 @@ export const shop=renderToStaticMarkup(<RewardShop {...props} records={[]}/>);
 const statusProfile={...props.profile,checkinDays:Array.from({length:80},(_,i)=>new Date(Date.UTC(2026,0,i+1)).toISOString().slice(0,10)),healthRewards:{measurements:[],appointments:[],redemptions:[{id:'first',prizeId:'gift30',goal:30,createdAt:'2026-10-10',collectedAt:'2026-10-11'},{id:'second',prizeId:'body50',goal:50,createdAt:'2026-10-12'}]}};
 export const statuses=renderToStaticMarkup(<RewardShop {...props} profile={statusProfile} records={[]}/>);
 export const staff=renderToStaticMarkup(<StaffRewards auth={props.auth} patientId="fixture" patientName="合成個案" initialProfile={{...statusProfile,shellTotal:80}} inline directRedemption/>);
-export const staffEmpty=renderToStaticMarkup(<StaffRewards auth={props.auth} patientId="fixture" initialProfile={{...props.profile,shellTotal:30}} inline directRedemption/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'cjs',loader:{'.css':'empty'},define:{'import.meta.env':'{}'}});
+export const staffEmpty=renderToStaticMarkup(<StaffRewards auth={props.auth} patientId="fixture" initialProfile={{...props.profile,shellTotal:0}} inline directRedemption/>);`,loader:'tsx',resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'cjs',loader:{'.css':'empty'},define:{'import.meta.env':'{}'}});
 const compiled={exports:{}};new Function('require','module','exports',outputFiles[0].text)(createRequire(import.meta.url),compiled,compiled.exports);
 test('measurement starts with a clear action and monthly reward; three-day reminder is accessible',()=>{
   assert.equal((compiled.exports.cards.match(/type="submit"/g)||[]).length,1);
@@ -34,12 +34,13 @@ test('island cards distinguish locked, unlocked, pending and collected independe
   assert.doesNotMatch(html,/兌換此島獎勵|已領取/);
 });
 
-test('admin can redeem without an application; collected and locked checkboxes cannot be changed',()=>{
+test('admin can redeem all prizes regardless of shells; only collected checkboxes cannot be changed',()=>{
   const html=compiled.exports.staff;
   assert.equal((html.match(/type="checkbox"/g)||[]).length,4);
   assert.equal((html.match(/checked=""/g)||[]).length,1);
-  assert.equal((html.match(/disabled=""/g)||[]).length,2);
+  assert.equal((html.match(/disabled=""/g)||[]).length,1);
   assert.match(html,/待領取・勾選完成兌換/);assert.match(html,/合成個案：免費營養諮詢已兌換/);
-  assert.equal((compiled.exports.staffEmpty.match(/disabled=""/g)||[]).length,3);
-  assert.match(compiled.exports.staffEmpty,/勾選即完成兌換，個案不需先申請/);
+  assert.equal((compiled.exports.staffEmpty.match(/disabled=""/g)||[]).length,0);
+  assert.match(compiled.exports.staffEmpty,/勾選即完成兌換，不受貝殼數限制/);
+  assert.doesNotMatch(compiled.exports.staffEmpty,/尚未解鎖|累積.*顆解鎖/);
 });

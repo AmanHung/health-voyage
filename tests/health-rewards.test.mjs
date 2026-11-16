@@ -10,13 +10,12 @@ function seedShells(e,a,total) {
   p.checkinDays=Array.from({length:total},(_,i)=>new Date(Date.UTC(2026,0,i+1)).toISOString().slice(0,10));
   rows[index][5]=JSON.stringify(p);
 }
-test('admin directly redeems each unlocked prize once; patient status updates without application or shell spending',()=>{
-  for(const total of [29,30,49,50,79,80,199,200]){
+test('admin directly redeems every prize at any total including zero, once; patient status updates without spending',()=>{
+  for(const total of [0,1,29,30,49,50,79,80,199,200]){
     const e=environment({now:'2026-10-15T03:00:00Z'}),a=e.patient('A'),b=e.patient('B');seedShells(e,a,total);
     for(const prize of prizes){
       const payload={patientId:a.id,prizeId:prize.id,total:99999,goal:0};
-      const result=e.call('health.adminRedeem',payload);assert.equal(result.ok,total>=prize.goal,`${total}/${prize.goal}`);
-      if(!result.ok)continue;
+      const result=e.call('health.adminRedeem',payload);assert.equal(result.ok,true,`${total}/${prize.goal}: ${result.error||''}`);
       assert.equal(result.data.shellTotal,total);
       const first=result.data.profile.healthRewards.redemptions.find(r=>r.prizeId===prize.id);
       assert.ok(first.collectedAt);assert.equal(first.goal,prize.goal);

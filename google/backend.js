@@ -395,7 +395,7 @@ function requestAllowed(action, payload, identity) {
   const invited = people.find(p=>p.inviteHash===hash(code));
   return !!(invited && invited.active && !invited.deletedAt && invited.isTest === true && !invited.subject && !invited.inviteUsedAt && invited.inviteExpiresAt>Date.now());
 }
-export function get() { return json({ok:true,service:'health-voyage',version:16,recordNewSince:CARE_RECORD_NEW_SINCE,capabilities:['adminDirectRedemption','rewardStatus','multiExercisePhotos','exerciseRewardsV2','recordNewBaseline','careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
+export function get() { return json({ok:true,service:'health-voyage',version:17,recordNewSince:CARE_RECORD_NEW_SINCE,capabilities:['adminRedemptionAnyTotal','adminDirectRedemption','rewardStatus','multiExercisePhotos','exerciseRewardsV2','recordNewBaseline','careAdvice','adminRecordCounts','adminShellTotals','monthlyAppointmentRewards','healthRewards','activityGoals','adminTrash','medicationPlans','leaderboardAvatars','adminLeaderboard','fastBootstrap','dailyCheckin'],acceptingPatients:props().getProperty('ACCEPT_PATIENTS')==='true',acceptingTestPatients:props().getProperty('ACCEPT_TEST_PATIENTS')==='true'}); }
 export function post(e) {
   try {
     need(e?.postData?.contents && e.postData.contents.length<=10500000,'上傳資料太大或格式不正確。');
